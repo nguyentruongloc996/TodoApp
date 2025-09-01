@@ -1,26 +1,44 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TodoApp.Domain.Entities;
 using TodoApp.Domain.ValueObjects;
 
 namespace TodoApp.Infrastructure.Persistence.Configurations
 {
+    public class EmailValueConverter : ValueConverter<Email, string>
+    {
+        public EmailValueConverter(IDataProtector protector)
+            : base(
+                email => protector.Protect(email.Value),         // to DB
+                encrypted => new Email(protector.Unprotect(encrypted)) // from DB
+            )
+        { }
+    }
+
     public class UserConfiguration : IEntityTypeConfiguration<User>
     {
+        private readonly IDataProtectionProvider _dataProtectionProvider;
+
+        public UserConfiguration(IDataProtectionProvider dataProtectionProvider)
+        {
+            _dataProtectionProvider = dataProtectionProvider;
+        }
+
         public void Configure(EntityTypeBuilder<User> builder)
         {
             builder.HasKey(u => u.Id);
             
-            builder.Property(u => u.Name)
+            builder.Property(u => u.DisplayName)
                 .IsRequired()
                 .HasMaxLength(100);
-                
+
+            var protector = _dataProtectionProvider.CreateProtector("DomainUser.Email");
             builder.Property(u => u.Email)
                 .IsRequired()
-                .HasConversion(
-                    email => email.Value,
-                    value => new Email(value))
+                .HasConversion(new EmailValueConverter(protector))
                 .HasMaxLength(255);
                 
             builder.Property(u => u.GroupIds)

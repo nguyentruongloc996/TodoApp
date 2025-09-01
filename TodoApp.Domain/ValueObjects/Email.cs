@@ -16,6 +16,11 @@ public class Email
         Value = value;
     }
 
+    public override string ToString()
+    {
+        return Value;
+    }
+
     public override bool Equals(object? obj)
     {
         if (obj is Email other)

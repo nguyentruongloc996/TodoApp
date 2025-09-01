@@ -21,7 +21,7 @@ namespace TodoApp.Infrastructure.Services
             {
                 Id = Guid.NewGuid(),
                 Email = new TodoApp.Domain.ValueObjects.Email(command.Request.Email),
-                Name = command.Request.Name
+                DisplayName = command.Request.Name
             };
 
             await _unitOfWork.Users.AddAsync(user);
@@ -30,7 +30,7 @@ namespace TodoApp.Infrastructure.Services
             return new RegisterRequestDto
             {
                 Email = user.Email.Value,
-                Name = user.Name,
+                Name = user.DisplayName,
                 Password = command.Request.Password
             };
         }
@@ -53,7 +53,7 @@ namespace TodoApp.Infrastructure.Services
                 {
                     Id = user.Id,
                     Email = user.Email.Value,
-                    Name = user.Name,
+                    Name = user.DisplayName,
                     ProfilePicture = null
                 }
             };
@@ -74,7 +74,7 @@ namespace TodoApp.Infrastructure.Services
                 {
                     Id = Guid.NewGuid(),
                     Email = new TodoApp.Domain.ValueObjects.Email(mockEmail),
-                    Name = "Google User"
+                    DisplayName = "Google User"
                 };
 
                 existingUser = await _unitOfWork.Users.AddAsync(newUser);
@@ -90,7 +90,7 @@ namespace TodoApp.Infrastructure.Services
                 {
                     Id = existingUser.Id,
                     Email = existingUser.Email.Value,
-                    Name = existingUser.Name,
+                    Name = existingUser.DisplayName,
                     ProfilePicture = null
                 }
             };
@@ -120,7 +120,7 @@ namespace TodoApp.Infrastructure.Services
             {
                 Id = user.Id,
                 Email = user.Email.Value,
-                Name = user.Name,
+                Name = user.DisplayName,
                 ProfilePicture = null
             };
         }

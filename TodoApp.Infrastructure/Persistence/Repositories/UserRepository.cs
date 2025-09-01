@@ -33,7 +33,7 @@ namespace TodoApp.Infrastructure.Persistence.Repositories
         public async System.Threading.Tasks.Task<IEnumerable<User>> SearchByNameAsync(string name)
         {
             return await _context.Users
-                .Where(u => u.Name.Contains(name))
+                .Where(u => u.DisplayName.Contains(name))
                 .ToListAsync();
         }
 

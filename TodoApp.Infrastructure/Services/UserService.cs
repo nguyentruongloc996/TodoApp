@@ -20,7 +20,7 @@ namespace TodoApp.Infrastructure.Services
             {
                 Id = Guid.NewGuid(),
                 Email = new TodoApp.Domain.ValueObjects.Email(userDto.Email),
-                Name = userDto.Name
+                DisplayName = userDto.Name
             };
 
             var createdUser = await _unitOfWork.Users.AddAsync(user);
@@ -30,7 +30,7 @@ namespace TodoApp.Infrastructure.Services
             {
                 Id = createdUser.Id,
                 Email = createdUser.Email.Value,
-                Name = createdUser.Name,
+                Name = createdUser.DisplayName,
                 ProfilePicture = userDto.ProfilePicture
             };
         }
@@ -42,7 +42,7 @@ namespace TodoApp.Infrastructure.Services
                 throw new ArgumentException("User not found");
 
             user.Email = new TodoApp.Domain.ValueObjects.Email(userDto.Email);
-            user.Name = userDto.Name;
+            user.DisplayName = userDto.Name;
 
             var updatedUser = await _unitOfWork.Users.UpdateAsync(user);
             await _unitOfWork.SaveChangesAsync();
@@ -51,7 +51,7 @@ namespace TodoApp.Infrastructure.Services
             {
                 Id = updatedUser.Id,
                 Email = updatedUser.Email.Value,
-                Name = updatedUser.Name,
+                Name = updatedUser.DisplayName,
                 ProfilePicture = userDto.ProfilePicture
             };
         }
@@ -67,7 +67,7 @@ namespace TodoApp.Infrastructure.Services
             {
                 Id = user.Id,
                 Email = user.Email.Value,
-                Name = user.Name,
+                Name = user.DisplayName,
                 ProfilePicture = null
             };
         }
@@ -83,7 +83,7 @@ namespace TodoApp.Infrastructure.Services
             {
                 Id = user.Id,
                 Email = user.Email.Value,
-                Name = user.Name,
+                Name = user.DisplayName,
                 ProfilePicture = null
             };
         }
@@ -96,7 +96,7 @@ namespace TodoApp.Infrastructure.Services
             {
                 Id = user.Id,
                 Email = user.Email.Value,
-                Name = user.Name,
+                Name = user.DisplayName,
                 ProfilePicture = null
             }).ToList();
         }

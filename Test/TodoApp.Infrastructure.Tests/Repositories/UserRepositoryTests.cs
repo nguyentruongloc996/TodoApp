@@ -30,7 +30,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             {
                 Id = Guid.NewGuid(),
                 Email = new Email("test@example.com"),
-                Name = "Test User"
+                DisplayName = "Test User"
             };
 
             // Act
@@ -40,7 +40,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             Assert.NotNull(result);
             Assert.Equal(user.Id, result.Id);
             Assert.Equal(user.Email.Value, result.Email.Value);
-            Assert.Equal(user.Name, result.Name);
+            Assert.Equal(user.DisplayName, result.DisplayName);
 
             // Verify it's in the database
             var userInDb = await context.Users.FindAsync(user.Id);
@@ -57,7 +57,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             {
                 Id = Guid.NewGuid(),
                 Email = new Email("test@example.com"),
-                Name = "Test User"
+                DisplayName = "Test User"
             };
             await repository.AddAsync(user);
 
@@ -68,7 +68,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             Assert.NotNull(result);
             Assert.Equal(user.Id, result.Id);
             Assert.Equal(user.Email.Value, result.Email.Value);
-            Assert.Equal(user.Name, result.Name);
+            Assert.Equal(user.DisplayName, result.DisplayName);
         }
 
         [Fact]
@@ -97,7 +97,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             {
                 Id = Guid.NewGuid(),
                 Email = new Email(email),
-                Name = "Test User"
+                DisplayName = "Test User"
             };
             await repository.AddAsync(user);
 
@@ -108,7 +108,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             Assert.NotNull(result);
             Assert.Equal(user.Id, result.Id);
             Assert.Equal(user.Email.Value, result.Email.Value);
-            Assert.Equal(user.Name, result.Name);
+            Assert.Equal(user.DisplayName, result.DisplayName);
         }
 
         [Fact]
@@ -136,13 +136,13 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             {
                 Id = Guid.NewGuid(),
                 Email = new Email("user1@example.com"),
-                Name = "User 1"
+                DisplayName = "User 1"
             };
             var user2 = new User
             {
                 Id = Guid.NewGuid(),
                 Email = new Email("user2@example.com"),
-                Name = "User 2"
+                DisplayName = "User 2"
             };
             await repository.AddAsync(user1);
             await repository.AddAsync(user2);
@@ -166,19 +166,19 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             {
                 Id = Guid.NewGuid(),
                 Email = new Email("john@example.com"),
-                Name = "John Doe"
+                DisplayName = "John Doe"
             };
             var user2 = new User
             {
                 Id = Guid.NewGuid(),
                 Email = new Email("jane@example.com"),
-                Name = "Jane Smith"
+                DisplayName = "Jane Smith"
             };
             var user3 = new User
             {
                 Id = Guid.NewGuid(),
                 Email = new Email("johnny@example.com"),
-                Name = "Johnny Johnson"
+                DisplayName = "Johnny Johnson"
             };
             await repository.AddAsync(user1);
             await repository.AddAsync(user2);
@@ -204,13 +204,13 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             {
                 Id = Guid.NewGuid(),
                 Email = new Email("original@example.com"),
-                Name = "Original Name"
+                DisplayName = "Original Name"
             };
             await repository.AddAsync(user);
 
             // Update user properties
             user.Email = new Email("updated@example.com");
-            user.Name = "Updated Name";
+            user.DisplayName = "Updated Name";
 
             // Act
             var result = await repository.UpdateAsync(user);
@@ -218,12 +218,12 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             // Assert
             Assert.NotNull(result);
             Assert.Equal("updated@example.com", result.Email.Value);
-            Assert.Equal("Updated Name", result.Name);
+            Assert.Equal("Updated Name", result.DisplayName);
 
             // Verify in database
             var userInDb = await repository.GetByIdAsync(user.Id);
             Assert.Equal("updated@example.com", userInDb!.Email.Value);
-            Assert.Equal("Updated Name", userInDb.Name);
+            Assert.Equal("Updated Name", userInDb.DisplayName);
         }
 
         [Fact]
@@ -236,7 +236,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             {
                 Id = Guid.NewGuid(),
                 Email = new Email("test@example.com"),
-                Name = "Test User"
+                DisplayName = "Test User"
             };
             await repository.AddAsync(user);
 
@@ -271,7 +271,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             {
                 Id = Guid.NewGuid(),
                 Email = new Email("test@example.com"),
-                Name = "Test User"
+                DisplayName = "Test User"
             };
             await repository.AddAsync(user);
 
@@ -308,7 +308,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             {
                 Id = Guid.NewGuid(),
                 Email = new Email(email),
-                Name = "Test User"
+                DisplayName = "Test User"
             };
             await repository.AddAsync(user);
 

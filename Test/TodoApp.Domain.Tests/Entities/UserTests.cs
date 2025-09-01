@@ -21,13 +21,13 @@ namespace TodoApp.Domain.Tests.Entities
             {
                 Id = Guid.NewGuid(),
                 Email = email,
-                Name = name,
+                DisplayName = name,
                 GroupIds = groupIds
             };
 
             // Assert
             Assert.Equal(email, user.Email);
-            Assert.Equal(name, user.Name);
+            Assert.Equal(name, user.DisplayName);
             Assert.Equal(groupIds, user.GroupIds);
         }
     }

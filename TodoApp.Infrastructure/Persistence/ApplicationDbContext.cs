@@ -1,14 +1,20 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using TodoApp.Domain.Entities;
 using TodoApp.Domain.ValueObjects;
-using TodoApp.Domain.Enums;
 using TodoApp.Infrastructure.Persistence.Configurations;
 
 namespace TodoApp.Infrastructure.Persistence
 {
     public class ApplicationDbContext : DbContext
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+        private readonly IDataProtectionProvider _dataProtectionProvider;
+
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options,
+            IDataProtectionProvider dataProtectionProvider) : base(options) 
+        { 
+            _dataProtectionProvider = dataProtectionProvider;
+        }
 
         public DbSet<Domain.Entities.Task> Tasks { get; set; }
         public DbSet<SubTask> SubTasks { get; set; }
@@ -18,17 +24,17 @@ namespace TodoApp.Infrastructure.Persistence
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            
+
             // Apply configurations
             modelBuilder.ApplyConfiguration(new TaskConfiguration());
-            modelBuilder.ApplyConfiguration(new UserConfiguration());
+            modelBuilder.ApplyConfiguration(new UserConfiguration(_dataProtectionProvider));
             modelBuilder.ApplyConfiguration(new GroupConfiguration());
             modelBuilder.ApplyConfiguration(new SubTaskConfiguration());
-            
+
             // Seed data
             SeedData(modelBuilder);
         }
-        
+
         private void SeedData(ModelBuilder modelBuilder)
         {
             // Seed Users
@@ -36,20 +42,20 @@ namespace TodoApp.Infrastructure.Persistence
             {
                 Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
                 Email = new Email("test1@example.com"),
-                Name = "Test User 1",
+                DisplayName = "Test User 1",
                 GroupIds = new List<Guid>()
             };
-            
+
             var testUser2 = new User
             {
                 Id = Guid.Parse("22222222-2222-2222-2222-222222222222"),
                 Email = new Email("test2@example.com"),
-                Name = "Test User 2",
+                DisplayName = "Test User 2",
                 GroupIds = new List<Guid>()
             };
-            
+
             modelBuilder.Entity<User>().HasData(testUser1, testUser2);
-            
+
             // Seed Groups
             var testGroup = new Group
             {
@@ -58,13 +64,13 @@ namespace TodoApp.Infrastructure.Persistence
                 MemberIds = new List<Guid> { testUser1.Id, testUser2.Id },
                 TaskIds = new List<Guid>()
             };
-            
+
             modelBuilder.Entity<Group>().HasData(testGroup);
-            
+
             // Update users with group membership
             testUser1.GroupIds.Add(testGroup.Id);
             testUser2.GroupIds.Add(testGroup.Id);
-            
+
             // Seed Tasks
             var testTask1 = new Domain.Entities.Task
             {
@@ -76,7 +82,7 @@ namespace TodoApp.Infrastructure.Persistence
                 GroupId = testGroup.Id,
                 SubTasks = new List<SubTask>()
             };
-            
+
             var testTask2 = new Domain.Entities.Task
             {
                 Id = Guid.Parse("55555555-5555-5555-5555-555555555555"),
@@ -87,12 +93,12 @@ namespace TodoApp.Infrastructure.Persistence
                 GroupId = null,
                 SubTasks = new List<SubTask>()
             };
-            
+
             modelBuilder.Entity<Domain.Entities.Task>().HasData(testTask1, testTask2);
-            
+
             // Update group with task
             testGroup.TaskIds.Add(testTask1.Id);
-            
+
             // Seed SubTasks
             var subTask1 = new SubTask
             {
@@ -101,7 +107,7 @@ namespace TodoApp.Infrastructure.Persistence
                 Status = TodoApp.Domain.Enums.TaskStatus.Pending,
                 ParentTaskId = testTask1.Id
             };
-            
+
             var subTask2 = new SubTask
             {
                 Id = Guid.Parse("77777777-7777-7777-7777-777777777777"),
@@ -109,8 +115,8 @@ namespace TodoApp.Infrastructure.Persistence
                 Status = TodoApp.Domain.Enums.TaskStatus.Completed,
                 ParentTaskId = testTask1.Id
             };
-            
+
             modelBuilder.Entity<SubTask>().HasData(subTask1, subTask2);
         }
     }
-} 
+}

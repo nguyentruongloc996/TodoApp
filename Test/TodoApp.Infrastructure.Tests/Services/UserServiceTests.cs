@@ -38,7 +38,7 @@ namespace TodoApp.Infrastructure.Tests.Services
             {
                 Id = Guid.NewGuid(),
                 Email = new Email(userDto.Email),
-                Name = userDto.Name
+                DisplayName = userDto.Name
             };
 
             _mockUserRepository.Setup(x => x.AddAsync(It.IsAny<User>()))
@@ -51,12 +51,12 @@ namespace TodoApp.Infrastructure.Tests.Services
             Assert.NotNull(result);
             Assert.Equal(expectedUser.Id, result.Id);
             Assert.Equal(expectedUser.Email.Value, result.Email);
-            Assert.Equal(expectedUser.Name, result.Name);
+            Assert.Equal(expectedUser.DisplayName, result.Name);
             Assert.Equal(userDto.ProfilePicture, result.ProfilePicture);
 
             _mockUserRepository.Verify(x => x.AddAsync(It.Is<User>(u =>
                 u.Email.Value == userDto.Email &&
-                u.Name == userDto.Name)), Times.Once);
+                u.DisplayName == userDto.Name)), Times.Once);
             _mockUnitOfWork.Verify(x => x.SaveChangesAsync(), Times.Once);
         }
 
@@ -76,14 +76,14 @@ namespace TodoApp.Infrastructure.Tests.Services
             {
                 Id = userId,
                 Email = new Email("original@example.com"),
-                Name = "Original User"
+                DisplayName = "Original User"
             };
 
             var updatedUser = new User
             {
                 Id = userId,
                 Email = new Email(userDto.Email),
-                Name = userDto.Name
+                DisplayName = userDto.Name
             };
 
             _mockUserRepository.Setup(x => x.GetByIdAsync(userId))
@@ -105,7 +105,7 @@ namespace TodoApp.Infrastructure.Tests.Services
             _mockUserRepository.Verify(x => x.UpdateAsync(It.Is<User>(u =>
                 u.Id == userId &&
                 u.Email.Value == userDto.Email &&
-                u.Name == userDto.Name)), Times.Once);
+                u.DisplayName == userDto.Name)), Times.Once);
             _mockUnitOfWork.Verify(x => x.SaveChangesAsync(), Times.Once);
         }
 
@@ -142,7 +142,7 @@ namespace TodoApp.Infrastructure.Tests.Services
             {
                 Id = userId,
                 Email = new Email("test@example.com"),
-                Name = "Test User"
+                DisplayName = "Test User"
             };
 
             _mockUserRepository.Setup(x => x.GetByIdAsync(userId))
@@ -155,7 +155,7 @@ namespace TodoApp.Infrastructure.Tests.Services
             Assert.NotNull(result);
             Assert.Equal(user.Id, result.Id);
             Assert.Equal(user.Email.Value, result.Email);
-            Assert.Equal(user.Name, result.Name);
+            Assert.Equal(user.DisplayName, result.Name);
             Assert.Null(result.ProfilePicture);
 
             _mockUserRepository.Verify(x => x.GetByIdAsync(userId), Times.Once);
@@ -186,7 +186,7 @@ namespace TodoApp.Infrastructure.Tests.Services
             {
                 Id = Guid.NewGuid(),
                 Email = new Email(email),
-                Name = "Test User"
+                DisplayName = "Test User"
             };
 
             _mockUserRepository.Setup(x => x.GetByEmailAsync(email))
@@ -199,7 +199,7 @@ namespace TodoApp.Infrastructure.Tests.Services
             Assert.NotNull(result);
             Assert.Equal(user.Id, result.Id);
             Assert.Equal(user.Email.Value, result.Email);
-            Assert.Equal(user.Name, result.Name);
+            Assert.Equal(user.DisplayName, result.Name);
             Assert.Null(result.ProfilePicture);
 
             _mockUserRepository.Verify(x => x.GetByEmailAsync(email), Times.Once);
@@ -232,13 +232,13 @@ namespace TodoApp.Infrastructure.Tests.Services
                 {
                     Id = Guid.NewGuid(),
                     Email = new Email("test1@example.com"),
-                    Name = "Test User 1"
+                    DisplayName = "Test User 1"
                 },
                 new User
                 {
                     Id = Guid.NewGuid(),
                     Email = new Email("test2@example.com"),
-                    Name = "Test User 2"
+                    DisplayName = "Test User 2"
                 }
             };
 
@@ -253,10 +253,10 @@ namespace TodoApp.Infrastructure.Tests.Services
             Assert.Equal(2, result.Count);
             Assert.Equal(users[0].Id, result[0].Id);
             Assert.Equal(users[0].Email.Value, result[0].Email);
-            Assert.Equal(users[0].Name, result[0].Name);
+            Assert.Equal(users[0].DisplayName, result[0].Name);
             Assert.Equal(users[1].Id, result[1].Id);
             Assert.Equal(users[1].Email.Value, result[1].Email);
-            Assert.Equal(users[1].Name, result[1].Name);
+            Assert.Equal(users[1].DisplayName, result[1].Name);
 
             _mockUserRepository.Verify(x => x.SearchByNameAsync(searchTerm), Times.Once);
         }
@@ -287,7 +287,7 @@ namespace TodoApp.Infrastructure.Tests.Services
             {
                 Id = userId,
                 Email = new Email("test@example.com"),
-                Name = "Test User"
+                DisplayName = "Test User"
             };
 
             _mockUserRepository.Setup(x => x.GetByIdAsync(userId))
@@ -332,7 +332,7 @@ namespace TodoApp.Infrastructure.Tests.Services
             {
                 Id = Guid.NewGuid(),
                 Email = new Email(email),
-                Name = "Existing User"
+                DisplayName = "Existing User"
             };
 
             _mockUserRepository.Setup(x => x.GetByEmailAsync(email))
