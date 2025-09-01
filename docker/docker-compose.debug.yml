@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: todo_user
+      POSTGRES_PASSWORD: todo_pass
+      POSTGRES_DB: todo_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+
+  api:
+    build:
+      context: ..
+      dockerfile: TodoApp.API/Dockerfile
+      target: build
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: "http://+:80"
+      ASPNETCORE_Kestrel__Limits__MaxRequestBodySize: "52428800"
+      DOTNET_USE_POLLING_FILE_WATCHER: "1"
+      DOTNET_EnableDiagnostics: "1"
+      ConnectionStrings__DefaultConnection: "Host=postgres;Database=todo_db;Username=todo_user;Password=todo_pass"
+      Redis__ConnectionString: "redis:6379"
+    ports:
+      - "5000:80"
+      - "5001:443"
+      - "5002:5000"
+      - "5003:5003"
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ../TodoApp.API:/app
+      - ../TodoApp.Application:/src/TodoApp.Application
+      - ../TodoApp.Domain:/src/TodoApp.Domain
+      - ../TodoApp.Infrastructure:/src/TodoApp.Infrastructure
+      - /app/bin
+      - /app/obj
+    # Keep container running for debugging
+    command: ["dotnet", "watch", "run", "--urls", "http://+:80", "--environment", "Development"]
+    # Enable interactive mode for debugging
+    stdin_open: true
+    tty: true
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@todoapp.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+volumes:
+  pgdata:
+  redisdata:
+  pgadmin_data: 

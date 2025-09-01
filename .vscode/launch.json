@@ -1,0 +1,68 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Docker .NET Launch",
+            "type": "docker",
+            "request": "launch",
+            "preLaunchTask": "docker-run: debug",
+            "netCore": {
+                "appProject": "${workspaceFolder}/TodoApp.API/TodoApp.API.csproj",
+                "enableDebugging": true
+            }
+        },
+        {
+            "name": "Docker Compose: Launch",
+            "type": "docker",
+            "request": "launch",
+            "netCore": {
+                "appProject": "${workspaceFolder}/TodoApp.API/TodoApp.API.csproj",
+                "enableDebugging": true
+            },
+            "containerName": "todoapp-api"
+        },
+        {
+            "name": ".NET Core Launch (web)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/TodoApp.API/bin/Debug/net9.0/TodoApp.API.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/TodoApp.API",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            },
+            "justMyCode": true
+        },
+        {
+            "name": "Attach to Running Container",
+            "type": "docker",
+            "request": "attach",
+            "containerName": "docker-api-1",
+            "netCore": {
+                "appProject": "${workspaceFolder}/TodoApp.API/TodoApp.API.csproj",
+                "enableDebugging": true
+            }
+        },
+        {
+            "name": "Remote Debug Container",
+            "type": "coreclr",
+            "request": "attach",
+            "processId": "${command:pickRemoteProcess}",
+            "pipeTransport": {
+                "pipeCwd": "${workspaceFolder}",
+                "pipeProgram": "docker",
+                "pipeArgs": ["exec", "-i", "docker-api-1"],
+                "debuggerPath": "/usr/bin/dbg"
+            }
+        }
+    ]
+}

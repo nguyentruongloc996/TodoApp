@@ -1,0 +1,96 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/TodoApp.API/TodoApp.API.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "publish",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "publish",
+                "${workspaceFolder}/TodoApp.API/TodoApp.API.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "watch",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "watch",
+                "run",
+                "--project",
+                "${workspaceFolder}/TodoApp.API/TodoApp.API.csproj"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "docker-build",
+            "type": "docker-build",
+            "dockerBuild": {
+                "tag": "todoapp:latest",
+                "target": "base",
+                "dockerfile": "${workspaceFolder}/TodoApp.API/Dockerfile",
+                "context": "${workspaceFolder}",
+                "pull": true
+            },
+            "netCore": {
+                "appProject": "${workspaceFolder}/TodoApp.API/TodoApp.API.csproj",
+                "enableDebugging": true
+            }
+        },
+        {
+            "label": "docker-run: debug",
+            "type": "docker-run",
+            "dependsOn": [
+                "docker-build"
+            ],
+            "dockerRun": {
+                "ports": [
+                    {
+                        "hostPort": 5000,
+                        "containerPort": 80
+                    },
+                    {
+                        "hostPort": 5001,
+                        "containerPort": 443
+                    },
+                    {
+                        "hostPort": 5002,
+                        "containerPort": 5000
+                    }
+                ],
+                "env": {
+                    "ASPNETCORE_ENVIRONMENT": "Development",
+                    "ASPNETCORE_URLS": "http://+:80"
+                }
+            },
+            "netCore": {
+                "appProject": "${workspaceFolder}/TodoApp.API/TodoApp.API.csproj",
+                "enableDebugging": true,
+                "pipeTransport": {
+                    "pipeCwd": "${workspaceFolder}",
+                    "pipeProgram": "docker",
+                    "pipeArgs": [
+                        "exec",
+                        "-i"
+                    ],
+                    "debuggerPath": "/vsdbg/vsdbg"
+                }
+            }
+        }
+    ]
+}
