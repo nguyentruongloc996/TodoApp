@@ -9,19 +9,23 @@ namespace TodoApp.Infrastructure.Services
     public class AuthService : IAuthService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IUserIdentityService _userIdentityService;
 
-        public AuthService(IUnitOfWork unitOfWork)
+        public AuthService(IUnitOfWork unitOfWork, IUserIdentityService userIdentityService)
         {
             _unitOfWork = unitOfWork;
+            _userIdentityService = userIdentityService;
         }
 
         public async System.Threading.Tasks.Task<RegisterRequestDto> RegisterAsync(RegisterCommand command)
         {
+            var identityUserId = await _userIdentityService.CreateUserAsync(command.Request.Email, command.Request.Password);
             var user = new User
             {
                 Id = Guid.NewGuid(),
                 Email = new TodoApp.Domain.ValueObjects.Email(command.Request.Email),
-                DisplayName = command.Request.Name
+                DisplayName = command.Request.Name,
+                IdentityUserId = identityUserId
             };
 
             await _unitOfWork.Users.AddAsync(user);
@@ -39,10 +43,13 @@ namespace TodoApp.Infrastructure.Services
         {
             var user = await _unitOfWork.Users.GetByEmailAsync(request.Email);
             if (user == null)
-                throw new ArgumentException("Invalid email or password");
+                throw new ArgumentException("Invalid email");
 
             // In a real implementation, you would verify the password hash here
-            // For now, we'll just check if the user exists
+            var userIdentityId = user.IdentityUserId;
+            bool isValid = await _userIdentityService.CheckPasswordAsync(userIdentityId, request.Password);
+            if (!isValid)
+                throw new ArgumentException("Invalid password");
 
             return new LoginResponseDto
             {

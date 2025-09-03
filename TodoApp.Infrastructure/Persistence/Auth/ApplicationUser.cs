@@ -4,5 +4,5 @@ using TodoApp.Domain.ValueObjects;
 
 namespace TodoApp.Infrastructure.Persistence.Auth
 {
-    public class ApplicationUser : IdentityUser {}
+    public class ApplicationUser : IdentityUser<Guid> {}
 }
