@@ -1,7 +1,10 @@
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using TodoApp.Application.Abstraction.Services;
 using TodoApp.Application.DTOs;
 using TodoApp.Application.UseCases.Auth.Register;
 using TodoApp.Domain.Entities;
+using TodoApp.Infrastructure.Persistence.Auth;
 using TodoApp.Infrastructure.Persistence.Interfaces;
 
 namespace TodoApp.Infrastructure.Services
@@ -10,11 +13,13 @@ namespace TodoApp.Infrastructure.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserIdentityService _userIdentityService;
+        private readonly JwtSettings _jwtSettings;
 
-        public AuthService(IUnitOfWork unitOfWork, IUserIdentityService userIdentityService)
+        public AuthService(IUnitOfWork unitOfWork, IUserIdentityService userIdentityService, JwtSettings jwtSettings)
         {
             _unitOfWork = unitOfWork;
             _userIdentityService = userIdentityService;
+            _jwtSettings = jwtSettings;
         }
 
         public async System.Threading.Tasks.Task<RegisterRequestDto> RegisterAsync(RegisterCommand command)
@@ -106,6 +111,8 @@ namespace TodoApp.Infrastructure.Services
         public async System.Threading.Tasks.Task<LoginResponseDto> RefreshTokenAsync(RefreshTokenRequestDto request)
         {
             // In a real implementation, you would validate the refresh token here
+
+
             // For now, we'll return a mock response
             throw new NotImplementedException("Refresh token functionality not implemented yet");
         }
@@ -134,9 +141,24 @@ namespace TodoApp.Infrastructure.Services
 
         private string GenerateJwtToken(User user)
         {
-            // This is a placeholder implementation
-            // In a real application, you would use a proper JWT library
-            return $"jwt_token_for_{user.Id}";
+            var claims = new[]
+            {
+                new System.Security.Claims.Claim("userId", user.Id.ToString()),
+                new System.Security.Claims.Claim("email", user.Email.Value),
+                new System.Security.Claims.Claim("name", user.DisplayName)
+            };
+
+            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_jwtSettings.Secret));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: _jwtSettings.Issuer,
+                audience: _jwtSettings.Audience,
+                claims: claims,
+                expires: DateTime.UtcNow.AddHours(24),
+                signingCredentials: creds);
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
         private string GenerateRefreshToken()

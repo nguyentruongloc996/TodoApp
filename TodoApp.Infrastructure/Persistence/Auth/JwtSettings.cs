@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TodoApp.Infrastructure.Persistence.Auth
 {
-    internal class JwtSettings
+    public class JwtSettings
     {
         public string Secret { get; set; } = null!;
         public string Issuer { get; set; } = null!;
