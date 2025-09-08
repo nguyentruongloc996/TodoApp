@@ -16,6 +16,7 @@ namespace TodoApp.Infrastructure.Persistence
         private IUserRepository? _userRepository;
         private IGroupRepository? _groupRepository;
         private ISubTaskRepository? _subTaskRepository;
+        private IApplicationUserRepository? _applicationUserRepository;
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -23,9 +24,10 @@ namespace TodoApp.Infrastructure.Persistence
         }
 
         public ITaskRepository Tasks => _taskRepository ??= new TaskRepository(_context);
-        public IUserRepository Users => _userRepository ??= new UserRepository(_context);
+        public IUserRepository DomainUsers => _userRepository ??= new UserRepository(_context);
         public IGroupRepository Groups => _groupRepository ??= new GroupRepository(_context);
         public ISubTaskRepository SubTasks => _subTaskRepository ??= new SubTaskRepository(_context);
+        public IApplicationUserRepository ApplicationUsers => _applicationUserRepository ??= new ApplicationUserRepository(_context);
 
         public async System.Threading.Tasks.Task<int> SaveChangesAsync()
         {

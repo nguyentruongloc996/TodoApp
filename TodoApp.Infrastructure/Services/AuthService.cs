@@ -24,16 +24,18 @@ namespace TodoApp.Infrastructure.Services
 
         public async System.Threading.Tasks.Task<RegisterRequestDto> RegisterAsync(RegisterCommand command)
         {
-            var identityUserId = await _userIdentityService.CreateUserAsync(command.Request.Email, command.Request.Password);
+            // Validate email format
+            var email = new Domain.ValueObjects.Email(command.Request.Email);
+
             var user = new User
             {
                 Id = Guid.NewGuid(),
-                Email = new TodoApp.Domain.ValueObjects.Email(command.Request.Email),
-                DisplayName = command.Request.Name,
-                IdentityUserId = identityUserId
+                Email = email,
+                DisplayName = command.Request.Name
             };
+            var identityUserId = await _userIdentityService.CreateUserAsync(email.Value, command.Request.Password, user);
 
-            await _unitOfWork.Users.AddAsync(user);
+            await _unitOfWork.DomainUsers.AddAsync(user);
             await _unitOfWork.SaveChangesAsync();
 
             return new RegisterRequestDto
@@ -46,15 +48,20 @@ namespace TodoApp.Infrastructure.Services
 
         public async System.Threading.Tasks.Task<LoginResponseDto> LoginAsync(LoginRequestDto request)
         {
-            var user = await _unitOfWork.Users.GetByEmailAsync(request.Email);
-            if (user == null)
-                throw new ArgumentException("Invalid email");
+            // Single authentication call that handles both user lookup and password verification
+            var authResult = await _userIdentityService.AuthenticateAsync(request.Email, request.Password);
 
-            // In a real implementation, you would verify the password hash here
-            var userIdentityId = user.IdentityUserId;
-            bool isValid = await _userIdentityService.CheckPasswordAsync(userIdentityId, request.Password);
-            if (!isValid)
-                throw new ArgumentException("Invalid password");
+            if (!authResult.IsSuccess || !authResult.IdentityUserId.HasValue)
+                throw new UnauthorizedAccessException(string.IsNullOrEmpty(authResult.ErrorMessage) ? string.Empty : authResult.ErrorMessage);
+
+            var identityUser = await _unitOfWork.ApplicationUsers.GetByIdAsync(authResult.IdentityUserId.Value);
+            // Get domain user by IdentityUserId
+            var user = identityUser?.DomainUser;
+            if (user == null)
+            {
+                // Handle data inconsistency - user exists in Identity but not in domain
+                throw new InvalidOperationException("User data inconsistency detected");
+            }
 
             return new LoginResponseDto
             {
@@ -77,7 +84,7 @@ namespace TodoApp.Infrastructure.Services
             // For now, we'll create a mock user
             
             var mockEmail = "google.user@example.com";
-            var existingUser = await _unitOfWork.Users.GetByEmailAsync(mockEmail);
+            var existingUser = await _unitOfWork.DomainUsers.GetByEmailAsync(mockEmail);
             
             if (existingUser == null)
             {
@@ -89,7 +96,7 @@ namespace TodoApp.Infrastructure.Services
                     DisplayName = "Google User"
                 };
 
-                existingUser = await _unitOfWork.Users.AddAsync(newUser);
+                existingUser = await _unitOfWork.DomainUsers.AddAsync(newUser);
                 await _unitOfWork.SaveChangesAsync();
             }
 
@@ -126,7 +133,7 @@ namespace TodoApp.Infrastructure.Services
 
         public async System.Threading.Tasks.Task<UserDto> GetUserByIdAsync(Guid userId)
         {
-            var user = await _unitOfWork.Users.GetByIdAsync(userId);
+            var user = await _unitOfWork.DomainUsers.GetByIdAsync(userId);
             if (user == null)
                 throw new ArgumentException("User not found");
 

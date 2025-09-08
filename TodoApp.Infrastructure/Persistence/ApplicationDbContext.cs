@@ -1,12 +1,15 @@
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using TodoApp.Domain.Entities;
 using TodoApp.Domain.ValueObjects;
+using TodoApp.Infrastructure.Persistence.Auth;
 using TodoApp.Infrastructure.Persistence.Configurations;
 
 namespace TodoApp.Infrastructure.Persistence
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
     {
         private readonly IDataProtectionProvider _dataProtectionProvider;
 
@@ -19,7 +22,7 @@ namespace TodoApp.Infrastructure.Persistence
         public DbSet<Domain.Entities.Task> Tasks { get; set; }
         public DbSet<SubTask> SubTasks { get; set; }
         public DbSet<Group> Groups { get; set; }
-        public DbSet<User> Users { get; set; }
+        public DbSet<User> DomainUsers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -28,6 +31,7 @@ namespace TodoApp.Infrastructure.Persistence
             // Apply configurations
             modelBuilder.ApplyConfiguration(new TaskConfiguration());
             modelBuilder.ApplyConfiguration(new UserConfiguration(_dataProtectionProvider));
+            modelBuilder.ApplyConfiguration(new ApplicationUserConfiguration()); // Add this
             modelBuilder.ApplyConfiguration(new GroupConfiguration());
             modelBuilder.ApplyConfiguration(new SubTaskConfiguration());
 
@@ -37,7 +41,7 @@ namespace TodoApp.Infrastructure.Persistence
 
         private void SeedData(ModelBuilder modelBuilder)
         {
-            // Seed Users
+            // Seed Domain Users first
             var testUser1 = new User
             {
                 Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
@@ -55,6 +59,35 @@ namespace TodoApp.Infrastructure.Persistence
             };
 
             modelBuilder.Entity<User>().HasData(testUser1, testUser2);
+
+            // Then seed Identity Users that reference Domain Users
+            var hasher = new PasswordHasher<ApplicationUser>();
+            
+            var identityUser1 = new ApplicationUser
+            {
+                Id = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+                UserName = testUser1.Email.Value,
+                Email = testUser1.Email.Value,
+                NormalizedUserName = testUser1.Email.Value.ToUpperInvariant(),
+                NormalizedEmail = testUser1.Email.Value.ToUpperInvariant(),
+                EmailConfirmed = true,
+                DomainUserId = testUser1.Id
+            };
+            identityUser1.PasswordHash = hasher.HashPassword(identityUser1, "PasswordUser1!");
+
+            var identityUser2 = new ApplicationUser
+            {
+                Id = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+                UserName = testUser2.Email.Value,
+                Email = testUser2.Email.Value,
+                NormalizedUserName = testUser2.Email.Value.ToUpperInvariant(),
+                NormalizedEmail = testUser2.Email.Value.ToUpperInvariant(),
+                EmailConfirmed = true,
+                DomainUserId = testUser2.Id
+            };
+            identityUser2.PasswordHash = hasher.HashPassword(identityUser2, "PasswordUser2!");
+
+            modelBuilder.Entity<ApplicationUser>().HasData(identityUser1, identityUser2);
 
             // Seed Groups
             var testGroup = new Group

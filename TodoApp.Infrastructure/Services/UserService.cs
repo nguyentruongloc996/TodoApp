@@ -23,7 +23,7 @@ namespace TodoApp.Infrastructure.Services
                 DisplayName = userDto.Name
             };
 
-            var createdUser = await _unitOfWork.Users.AddAsync(user);
+            var createdUser = await _unitOfWork.DomainUsers.AddAsync(user);
             await _unitOfWork.SaveChangesAsync();
 
             return new UserDto
@@ -37,14 +37,14 @@ namespace TodoApp.Infrastructure.Services
 
         public async System.Threading.Tasks.Task<UserDto> UpdateUserAsync(Guid userId, UserDto userDto)
         {
-            var user = await _unitOfWork.Users.GetByIdAsync(userId);
+            var user = await _unitOfWork.DomainUsers.GetByIdAsync(userId);
             if (user == null)
                 throw new ArgumentException("User not found");
 
             user.Email = new TodoApp.Domain.ValueObjects.Email(userDto.Email);
             user.DisplayName = userDto.Name;
 
-            var updatedUser = await _unitOfWork.Users.UpdateAsync(user);
+            var updatedUser = await _unitOfWork.DomainUsers.UpdateAsync(user);
             await _unitOfWork.SaveChangesAsync();
 
             return new UserDto
@@ -58,7 +58,7 @@ namespace TodoApp.Infrastructure.Services
 
         public async System.Threading.Tasks.Task<UserDto> GetUserByIdAsync(Guid userId)
         {
-            var user = await _unitOfWork.Users.GetByIdAsync(userId);
+            var user = await _unitOfWork.DomainUsers.GetByIdAsync(userId);
             
             if (user == null)
                 throw new ArgumentException("User not found");
@@ -74,7 +74,7 @@ namespace TodoApp.Infrastructure.Services
 
         public async System.Threading.Tasks.Task<UserDto> GetUserByEmailAsync(string email)
         {
-            var user = await _unitOfWork.Users.GetByEmailAsync(email);
+            var user = await _unitOfWork.DomainUsers.GetByEmailAsync(email);
             
             if (user == null)
                 throw new ArgumentException("User not found");
@@ -90,7 +90,7 @@ namespace TodoApp.Infrastructure.Services
 
         public async System.Threading.Tasks.Task<List<UserDto>> SearchUsersAsync(string searchTerm)
         {
-            var users = await _unitOfWork.Users.SearchByNameAsync(searchTerm);
+            var users = await _unitOfWork.DomainUsers.SearchByNameAsync(searchTerm);
             
             return users.Select(user => new UserDto
             {
@@ -103,11 +103,11 @@ namespace TodoApp.Infrastructure.Services
 
         public async System.Threading.Tasks.Task<bool> DeleteUserAsync(Guid userId)
         {
-            var user = await _unitOfWork.Users.GetByIdAsync(userId);
+            var user = await _unitOfWork.DomainUsers.GetByIdAsync(userId);
             if (user == null)
                 return false;
 
-            await _unitOfWork.Users.DeleteAsync(userId);
+            await _unitOfWork.DomainUsers.DeleteAsync(userId);
             await _unitOfWork.SaveChangesAsync();
             return true;
         }
@@ -116,8 +116,25 @@ namespace TodoApp.Infrastructure.Services
         {
             // In a real implementation, you would send an invitation email here
             // For now, we'll just check if the user exists
-            var existingUser = await _unitOfWork.Users.GetByEmailAsync(email);
+            var existingUser = await _unitOfWork.DomainUsers.GetByEmailAsync(email);
             return existingUser != null;
         }
+
+        // Update methods to work with the new relationship
+        public async Task<UserDto> GetUserByIdentityIdAsync(Guid identityUserId)
+        {
+            var applicationUser = await _unitOfWork.ApplicationUsers.GetByIdWithDomainUserAsync(identityUserId);
+            
+            if (applicationUser?.DomainUser == null)
+                throw new ArgumentException("User not found");
+
+            return new UserDto
+            {
+                Id = applicationUser.DomainUser.Id,
+                Email = applicationUser.DomainUser.Email.Value,
+                Name = applicationUser.DomainUser.DisplayName,
+                ProfilePicture = null
+            };
+        }
     }
-} 
+}

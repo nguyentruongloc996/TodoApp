@@ -38,17 +38,13 @@ namespace TodoApp.Infrastructure
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
-            // Add Identity DbContext
-            services.AddDbContext<AppIdentityDbContext>(options =>
-                options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
-
             services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
                 {
                     options.Password.RequireDigit = true;
                     options.Password.RequireUppercase = false;
                     options.Password.RequireNonAlphanumeric = false;
                 })
-                .AddEntityFrameworkStores<AppIdentityDbContext>()
+                .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
             // JWT config

@@ -14,4 +14,4 @@ namespace TodoApp.Infrastructure.Persistence.Repositories.Interfaces
         System.Threading.Tasks.Task<bool> ExistsAsync(Guid id);
         System.Threading.Tasks.Task<bool> ExistsByEmailAsync(string email);
     }
-} 
+}

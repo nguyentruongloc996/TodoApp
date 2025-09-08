@@ -7,5 +7,4 @@ public class User
     public required Email Email { get; set; }
     public required string DisplayName { get; set; }
     public List<Guid> GroupIds { get; set; } = new();
-    public Guid IdentityUserId { get; set; }
 } 

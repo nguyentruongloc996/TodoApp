@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TodoApp.Application.Abstraction.Services;
+using TodoApp.Domain.Entities;
 using TodoApp.Infrastructure.Persistence.Auth;
 
 namespace TodoApp.Infrastructure.Services
@@ -21,10 +22,51 @@ namespace TodoApp.Infrastructure.Services
             _roleManager = roleManager;
         }
 
-        public async Task AddToRoleAsync(Guid userId, string role)
+        public async System.Threading.Tasks.Task AddToRoleAsync(Guid userId, string role)
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
             await _userManager.AddToRoleAsync(user, role);
+        }
+
+        public async Task<AuthenticationResult> AuthenticateAsync(string email, string password)
+        {
+            try
+            {
+                var user = await _userManager.FindByEmailAsync(email);
+                if (user == null)
+                {
+                    return new AuthenticationResult
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Invalid credentials"
+                    };
+                }
+
+                bool isValid = await _userManager.CheckPasswordAsync(user, password);
+                if (!isValid)
+                {
+                    return new AuthenticationResult
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Invalid credentials"
+                    };
+                }
+
+                return new AuthenticationResult
+                {
+                    IsSuccess = true,
+                    IdentityUserId = user.Id,
+                    Email = user.Email
+                };
+            }
+            catch (Exception ex)
+            {
+                return new AuthenticationResult
+                {
+                    IsSuccess = false,
+                    ErrorMessage = "Authentication service error"
+                };
+            }
         }
 
         public Task<bool> CheckPasswordAsync(Guid userId, string password)
@@ -33,9 +75,9 @@ namespace TodoApp.Infrastructure.Services
             _userManager.Users.First(u => u.Id == userId), password);
         }
 
-        public async Task<Guid> CreateUserAsync(string email, string password)
+        public async Task<Guid> CreateUserAsync(string email, string password, User domainUser)
         {
-            var user = new ApplicationUser { UserName = email, Email = email };
+            var user = new ApplicationUser { UserName = email, Email = email, DomainUser = domainUser };
             var result = await _userManager.CreateAsync(user, password);
 
             if (!result.Succeeded)

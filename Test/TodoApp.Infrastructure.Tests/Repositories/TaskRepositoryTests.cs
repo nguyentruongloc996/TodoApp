@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using TodoApp.Domain.Entities;
 using TodoApp.Domain.Enums;
@@ -11,6 +12,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
     public class TaskRepositoryTests
     {
         private readonly DbContextOptions<ApplicationDbContext> _options;
+        private readonly IDataProtectionProvider _dataProtectionProvider = DataProtectionProvider.Create("TaskRepositoryTests");
 
         public TaskRepositoryTests()
         {
@@ -23,7 +25,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
         public async System.Threading.Tasks.Task AddAsync_ShouldAddTaskToDatabase()
         {
             // Arrange
-            using var context = new ApplicationDbContext(_options);
+            using var context = new ApplicationDbContext(_options, _dataProtectionProvider);
             var repository = new TaskRepository(context);
             var taskEntity = new TodoApp.Domain.Entities.Task
             {
@@ -47,7 +49,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
         public async System.Threading.Tasks.Task GetByIdAsync_ShouldReturnTask_WhenTaskExists()
         {
             // Arrange
-            using var context = new ApplicationDbContext(_options);
+            using var context = new ApplicationDbContext(_options, _dataProtectionProvider);
             var repository = new TaskRepository(context);
             var taskEntity = new TodoApp.Domain.Entities.Task
             {
@@ -71,7 +73,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
         public async System.Threading.Tasks.Task GetByIdAsync_ShouldReturnNull_WhenTaskDoesNotExist()
         {
             // Arrange
-            using var context = new ApplicationDbContext(_options);
+            using var context = new ApplicationDbContext(_options, _dataProtectionProvider);
             var repository = new TaskRepository(context);
             var nonExistentId = Guid.NewGuid();
 
@@ -86,7 +88,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
         public async System.Threading.Tasks.Task GetByUserIdAsync_ShouldReturnUserTasks()
         {
             // Arrange
-            using var context = new ApplicationDbContext(_options);
+            using var context = new ApplicationDbContext(_options, _dataProtectionProvider);
             var repository = new TaskRepository(context);
             var userId = Guid.NewGuid();
             var task1 = new TodoApp.Domain.Entities.Task
@@ -119,7 +121,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
         public async System.Threading.Tasks.Task UpdateAsync_ShouldUpdateTask()
         {
             // Arrange
-            using var context = new ApplicationDbContext(_options);
+            using var context = new ApplicationDbContext(_options, _dataProtectionProvider);
             var repository = new TaskRepository(context);
             var taskEntity = new TodoApp.Domain.Entities.Task
             {
@@ -145,7 +147,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
         public async System.Threading.Tasks.Task DeleteAsync_ShouldRemoveTask()
         {
             // Arrange
-            using var context = new ApplicationDbContext(_options);
+            using var context = new ApplicationDbContext(_options, _dataProtectionProvider);
             var repository = new TaskRepository(context);
             var taskEntity = new TodoApp.Domain.Entities.Task
             {
@@ -168,7 +170,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
         public async System.Threading.Tasks.Task ExistsAsync_ShouldReturnTrue_WhenTaskExists()
         {
             // Arrange
-            using var context = new ApplicationDbContext(_options);
+            using var context = new ApplicationDbContext(_options, _dataProtectionProvider);
             var repository = new TaskRepository(context);
             var taskEntity = new TodoApp.Domain.Entities.Task
             {
@@ -190,7 +192,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
         public async System.Threading.Tasks.Task ExistsAsync_ShouldReturnFalse_WhenTaskDoesNotExist()
         {
             // Arrange
-            using var context = new ApplicationDbContext(_options);
+            using var context = new ApplicationDbContext(_options, _dataProtectionProvider);
             var repository = new TaskRepository(context);
             var nonExistentId = Guid.NewGuid();
 

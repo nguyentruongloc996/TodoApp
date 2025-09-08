@@ -19,7 +19,7 @@ namespace TodoApp.Infrastructure.Tests.Services
         {
             _mockUnitOfWork = new Mock<IUnitOfWork>();
             _mockUserRepository = new Mock<IUserRepository>();
-            _mockUnitOfWork.Setup(x => x.Users).Returns(_mockUserRepository.Object);
+            _mockUnitOfWork.Setup(x => x.DomainUsers).Returns(_mockUserRepository.Object);
             _userService = new UserService(_mockUnitOfWork.Object);
         }
 

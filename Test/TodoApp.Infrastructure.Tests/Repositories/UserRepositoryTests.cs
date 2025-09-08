@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.DataProtection;
+using Microsoft.EntityFrameworkCore;
 using TodoApp.Domain.Entities;
 using TodoApp.Domain.ValueObjects;
 using TodoApp.Infrastructure.Persistence;
@@ -10,6 +11,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
     public class UserRepositoryTests
     {
         private readonly DbContextOptions<ApplicationDbContext> _options;
+        private readonly IDataProtectionProvider dataProtectionProvider = DataProtectionProvider.Create("TestApp");
 
         public UserRepositoryTests()
         {
@@ -18,7 +20,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
                 .Options;
         }
 
-        private ApplicationDbContext CreateContext() => new(_options);
+        private ApplicationDbContext CreateContext() => new(_options, dataProtectionProvider);
 
         [Fact]
         public async System.Threading.Tasks.Task AddAsync_ShouldAddUserToDatabase()
@@ -43,7 +45,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             Assert.Equal(user.DisplayName, result.DisplayName);
 
             // Verify it's in the database
-            var userInDb = await context.Users.FindAsync(user.Id);
+            var userInDb = await context.DomainUsers.FindAsync(user.Id);
             Assert.NotNull(userInDb);
         }
 

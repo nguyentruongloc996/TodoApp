@@ -26,6 +26,9 @@ public class Email
         if (obj is Email other)
             return Value.Equals(other.Value, StringComparison.OrdinalIgnoreCase);
 
+        if (obj is string str)
+            return Value.Equals(str, StringComparison.OrdinalIgnoreCase);
+
         return base.Equals(obj);
     }
 
