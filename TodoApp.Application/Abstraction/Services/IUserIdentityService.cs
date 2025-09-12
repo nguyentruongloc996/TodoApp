@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Security.Claims;
 using TodoApp.Domain.Entities;
 
 namespace TodoApp.Application.Abstraction.Services
@@ -22,5 +18,11 @@ namespace TodoApp.Application.Abstraction.Services
         Task<bool> CheckPasswordAsync(Guid userId, string password);
         System.Threading.Tasks.Task AddToRoleAsync(Guid userId, string role);
         Task<bool> IsInRoleAsync(Guid userId, string role);
+        
+        // New methods for JWT token generation using Identity
+        Task<List<Claim>> GetUserClaimsAsync(Guid userId);
+        Task<string> GenerateJwtTokenAsync(Guid userId);
+        Task<string> GenerateRefreshTokenAsync(Guid userId);
+        Task<bool> ValidateRefreshTokenAsync(Guid userId, string refreshToken);
     }
 }

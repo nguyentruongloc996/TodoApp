@@ -21,11 +21,18 @@ namespace TodoApp.Infrastructure.Tests.Repositories
                 .Options;
         }
 
+        private ApplicationDbContext CreateContext()
+        {
+            var context = new ApplicationDbContext(_options, _dataProtectionProvider, seedData: false);
+            context.Database.EnsureCreated();
+            return context;
+        }
+
         [Fact]
         public async System.Threading.Tasks.Task AddAsync_ShouldAddTaskToDatabase()
         {
             // Arrange
-            using var context = new ApplicationDbContext(_options, _dataProtectionProvider);
+            using var context = CreateContext();
             var repository = new TaskRepository(context);
             var taskEntity = new TodoApp.Domain.Entities.Task
             {
@@ -49,7 +56,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
         public async System.Threading.Tasks.Task GetByIdAsync_ShouldReturnTask_WhenTaskExists()
         {
             // Arrange
-            using var context = new ApplicationDbContext(_options, _dataProtectionProvider);
+            using var context = CreateContext();
             var repository = new TaskRepository(context);
             var taskEntity = new TodoApp.Domain.Entities.Task
             {
@@ -73,7 +80,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
         public async System.Threading.Tasks.Task GetByIdAsync_ShouldReturnNull_WhenTaskDoesNotExist()
         {
             // Arrange
-            using var context = new ApplicationDbContext(_options, _dataProtectionProvider);
+            using var context = CreateContext();
             var repository = new TaskRepository(context);
             var nonExistentId = Guid.NewGuid();
 
@@ -88,7 +95,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
         public async System.Threading.Tasks.Task GetByUserIdAsync_ShouldReturnUserTasks()
         {
             // Arrange
-            using var context = new ApplicationDbContext(_options, _dataProtectionProvider);
+            using var context = CreateContext();
             var repository = new TaskRepository(context);
             var userId = Guid.NewGuid();
             var task1 = new TodoApp.Domain.Entities.Task
@@ -121,7 +128,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
         public async System.Threading.Tasks.Task UpdateAsync_ShouldUpdateTask()
         {
             // Arrange
-            using var context = new ApplicationDbContext(_options, _dataProtectionProvider);
+            using var context = CreateContext();
             var repository = new TaskRepository(context);
             var taskEntity = new TodoApp.Domain.Entities.Task
             {
@@ -147,7 +154,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
         public async System.Threading.Tasks.Task DeleteAsync_ShouldRemoveTask()
         {
             // Arrange
-            using var context = new ApplicationDbContext(_options, _dataProtectionProvider);
+            using var context = CreateContext();
             var repository = new TaskRepository(context);
             var taskEntity = new TodoApp.Domain.Entities.Task
             {
@@ -170,7 +177,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
         public async System.Threading.Tasks.Task ExistsAsync_ShouldReturnTrue_WhenTaskExists()
         {
             // Arrange
-            using var context = new ApplicationDbContext(_options, _dataProtectionProvider);
+            using var context = CreateContext();
             var repository = new TaskRepository(context);
             var taskEntity = new TodoApp.Domain.Entities.Task
             {
@@ -192,7 +199,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
         public async System.Threading.Tasks.Task ExistsAsync_ShouldReturnFalse_WhenTaskDoesNotExist()
         {
             // Arrange
-            using var context = new ApplicationDbContext(_options, _dataProtectionProvider);
+            using var context = CreateContext();
             var repository = new TaskRepository(context);
             var nonExistentId = Guid.NewGuid();
 
@@ -203,4 +210,4 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             Assert.False(result);
         }
     }
-} 
+}

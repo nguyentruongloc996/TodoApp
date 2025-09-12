@@ -11,7 +11,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
     public class UserRepositoryTests
     {
         private readonly DbContextOptions<ApplicationDbContext> _options;
-        private readonly IDataProtectionProvider dataProtectionProvider = DataProtectionProvider.Create("TestApp");
+        private readonly IDataProtectionProvider _dataProtectionProvider = DataProtectionProvider.Create("TestApp");
 
         public UserRepositoryTests()
         {
@@ -20,7 +20,12 @@ namespace TodoApp.Infrastructure.Tests.Repositories
                 .Options;
         }
 
-        private ApplicationDbContext CreateContext() => new(_options, dataProtectionProvider);
+        private ApplicationDbContext CreateContext()
+        {
+            var context = new ApplicationDbContext(_options, _dataProtectionProvider, seedData: false);
+            context.Database.EnsureCreated();
+            return context;
+        }
 
         [Fact]
         public async System.Threading.Tasks.Task AddAsync_ShouldAddUserToDatabase()
@@ -229,7 +234,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
         }
 
         [Fact]
-        public async    System.Threading.Tasks.Task DeleteAsync_ShouldRemoveUser_WhenUserExists()
+        public async System.Threading.Tasks.Task DeleteAsync_ShouldRemoveUser_WhenUserExists()
         {
             // Arrange
             using var context = CreateContext();

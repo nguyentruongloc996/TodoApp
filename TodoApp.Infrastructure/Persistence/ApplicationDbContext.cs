@@ -12,11 +12,14 @@ namespace TodoApp.Infrastructure.Persistence
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
     {
         private readonly IDataProtectionProvider _dataProtectionProvider;
+        private readonly bool _seedData;
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options,
-            IDataProtectionProvider dataProtectionProvider) : base(options) 
+            IDataProtectionProvider dataProtectionProvider, 
+            bool seedData = true) : base(options) 
         { 
             _dataProtectionProvider = dataProtectionProvider;
+            _seedData = seedData;
         }
 
         public DbSet<Domain.Entities.Task> Tasks { get; set; }
@@ -31,12 +34,15 @@ namespace TodoApp.Infrastructure.Persistence
             // Apply configurations
             modelBuilder.ApplyConfiguration(new TaskConfiguration());
             modelBuilder.ApplyConfiguration(new UserConfiguration(_dataProtectionProvider));
-            modelBuilder.ApplyConfiguration(new ApplicationUserConfiguration()); // Add this
+            modelBuilder.ApplyConfiguration(new ApplicationUserConfiguration());
             modelBuilder.ApplyConfiguration(new GroupConfiguration());
             modelBuilder.ApplyConfiguration(new SubTaskConfiguration());
 
-            // Seed data
-            SeedData(modelBuilder);
+            // Only seed data if explicitly requested
+            if (_seedData)
+            {
+                SeedData(modelBuilder);
+            }
         }
 
         private void SeedData(ModelBuilder modelBuilder)

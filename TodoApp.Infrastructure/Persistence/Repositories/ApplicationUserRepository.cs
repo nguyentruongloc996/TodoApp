@@ -59,5 +59,11 @@ namespace TodoApp.Infrastructure.Persistence.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+
+        public async Task<ApplicationUser?> GetByDomainUserIdAsync(Guid domainUserId)
+        {
+            return await _context.Users
+                .FirstOrDefaultAsync(u => u.DomainUserId == domainUserId);
+        }
     }
 }

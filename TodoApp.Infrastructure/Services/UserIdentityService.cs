@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
 using TodoApp.Application.Abstraction.Services;
 using TodoApp.Domain.Entities;
 using TodoApp.Infrastructure.Persistence.Auth;
@@ -13,19 +12,25 @@ namespace TodoApp.Infrastructure.Services
     public class UserIdentityService : IUserIdentityService
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly RoleManager<IdentityRole<Guid>> _roleManager;
+        private readonly JwtSettings _jwtSettings;
 
         public UserIdentityService(UserManager<ApplicationUser> userManager,
-                                   RoleManager<IdentityRole> roleManager)
+                                   RoleManager<IdentityRole<Guid>> roleManager,
+                                   JwtSettings jwtSettings)
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _jwtSettings = jwtSettings;
         }
 
         public async System.Threading.Tasks.Task AddToRoleAsync(Guid userId, string role)
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
-            await _userManager.AddToRoleAsync(user, role);
+            if (user != null)
+            {
+                await _userManager.AddToRoleAsync(user, role);
+            }
         }
 
         public async Task<AuthenticationResult> AuthenticateAsync(string email, string password)
@@ -69,27 +74,127 @@ namespace TodoApp.Infrastructure.Services
             }
         }
 
-        public Task<bool> CheckPasswordAsync(Guid userId, string password)
+        public async Task<bool> CheckPasswordAsync(Guid userId, string password)
         {
-            return _userManager.CheckPasswordAsync(
-            _userManager.Users.First(u => u.Id == userId), password);
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null) return false;
+
+            return await _userManager.CheckPasswordAsync(user, password);
         }
 
         public async Task<Guid> CreateUserAsync(string email, string password, User domainUser)
         {
-            var user = new ApplicationUser { UserName = email, Email = email, DomainUser = domainUser };
+            var user = new ApplicationUser
+            {
+                UserName = email,
+                Email = email,
+                DomainUser = domainUser,
+                DomainUserId = domainUser.Id
+            };
+
             var result = await _userManager.CreateAsync(user, password);
 
             if (!result.Succeeded)
                 throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
 
-            return user.Id; // return IdentityUserId
+            return user.Id;
         }
 
         public async Task<bool> IsInRoleAsync(Guid userId, string role)
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null) return false;
+
             return await _userManager.IsInRoleAsync(user, role);
+        }
+
+        public async Task<List<Claim>> GetUserClaimsAsync(Guid userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null)
+                throw new ArgumentException("User not found");
+
+            var claims = new List<Claim>();
+
+            // Standard Identity claims
+            claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
+            claims.Add(new Claim(ClaimTypes.Name, user.UserName ?? string.Empty));
+            claims.Add(new Claim(ClaimTypes.Email, user.Email ?? string.Empty));
+
+            // Custom claims from domain user
+            if (user.DomainUser != null)
+            {
+                claims.Add(new Claim("domainUserId", user.DomainUser.Id.ToString()));
+                claims.Add(new Claim("displayName", user.DomainUser.DisplayName));
+            }
+
+            // Get user claims from Identity
+            var userClaims = await _userManager.GetClaimsAsync(user);
+            claims.AddRange(userClaims);
+
+            // Get role claims
+            var roles = await _userManager.GetRolesAsync(user);
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+
+                // Get role claims
+                var identityRole = await _roleManager.FindByNameAsync(role);
+                if (identityRole != null)
+                {
+                    var roleClaims = await _roleManager.GetClaimsAsync(identityRole);
+                    claims.AddRange(roleClaims);
+                }
+            }
+
+            return claims;
+        }
+
+        public async Task<string> GenerateJwtTokenAsync(Guid userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null)
+                throw new ArgumentException("User not found");
+
+            // Get all claims using Identity's built-in claim management
+            var claims = await GetUserClaimsAsync(userId);
+
+            // Add JWT specific claims
+            claims.Add(new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()));
+            claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
+            claims.Add(new Claim(JwtRegisteredClaimNames.Iat,
+                new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64));
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Secret));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: _jwtSettings.Issuer,
+                audience: _jwtSettings.Audience,
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes),
+                signingCredentials: creds);
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        public async Task<string> GenerateRefreshTokenAsync(Guid userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null)
+                throw new ArgumentException("User not found");
+
+            // Generate refresh token using Identity's token provider
+            return await _userManager.GenerateUserTokenAsync(user, "RefreshTokenProvider", "RefreshToken");
+        }
+
+        public async Task<bool> ValidateRefreshTokenAsync(Guid userId, string refreshToken)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null) return false;
+
+            // Validate refresh token using Identity's token provider
+            return await _userManager.VerifyUserTokenAsync(user, "RefreshTokenProvider", "RefreshToken", refreshToken);
         }
     }
 }

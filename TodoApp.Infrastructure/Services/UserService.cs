@@ -123,7 +123,7 @@ namespace TodoApp.Infrastructure.Services
         // Update methods to work with the new relationship
         public async Task<UserDto> GetUserByIdentityIdAsync(Guid identityUserId)
         {
-            var applicationUser = await _unitOfWork.ApplicationUsers.GetByIdWithDomainUserAsync(identityUserId);
+            var applicationUser = await _unitOfWork.ApplicationUsers.GetByIdAsync(identityUserId);
             
             if (applicationUser?.DomainUser == null)
                 throw new ArgumentException("User not found");

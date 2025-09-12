@@ -1,5 +1,6 @@
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using TodoApp.Application.Abstraction.Services;
 using TodoApp.Application.DTOs;
 using TodoApp.Application.UseCases.Auth.Register;
@@ -63,11 +64,15 @@ namespace TodoApp.Infrastructure.Services
                 throw new InvalidOperationException("User data inconsistency detected");
             }
 
+            // Use Identity-based JWT token generation
+            var jwtToken = await _userIdentityService.GenerateJwtTokenAsync(authResult.IdentityUserId.Value);
+            var refreshToken = await _userIdentityService.GenerateRefreshTokenAsync(authResult.IdentityUserId.Value);
+
             return new LoginResponseDto
             {
-                Token = GenerateJwtToken(user),
-                RefreshToken = GenerateRefreshToken(),
-                ExpiresAt = DateTime.UtcNow.AddHours(24),
+                Token = jwtToken,
+                RefreshToken = refreshToken,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes),
                 User = new UserDto
                 {
                     Id = user.Id,
@@ -100,11 +105,19 @@ namespace TodoApp.Infrastructure.Services
                 await _unitOfWork.SaveChangesAsync();
             }
 
+            // Find the corresponding Identity user
+            var identityUser = await _unitOfWork.ApplicationUsers.GetByDomainUserIdAsync(existingUser.Id);
+            if (identityUser == null)
+                throw new InvalidOperationException("Identity user not found for domain user");
+
+            var jwtToken = await _userIdentityService.GenerateJwtTokenAsync(identityUser.Id);
+            var refreshToken = await _userIdentityService.GenerateRefreshTokenAsync(identityUser.Id);
+
             return new LoginResponseDto
             {
-                Token = GenerateJwtToken(existingUser),
-                RefreshToken = GenerateRefreshToken(),
-                ExpiresAt = DateTime.UtcNow.AddHours(24),
+                Token = jwtToken,
+                RefreshToken = refreshToken,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes),
                 User = new UserDto
                 {
                     Id = existingUser.Id,
@@ -117,18 +130,64 @@ namespace TodoApp.Infrastructure.Services
 
         public async System.Threading.Tasks.Task<LoginResponseDto> RefreshTokenAsync(RefreshTokenRequestDto request)
         {
-            // In a real implementation, you would validate the refresh token here
+            // Extract user ID from the JWT token or implement a mapping mechanism
+            var userId = ExtractUserIdFromToken(request.RefreshToken);
+            
+            // Validate the refresh token using Identity
+            var isValid = await _userIdentityService.ValidateRefreshTokenAsync(userId, request.RefreshToken);
+            if (!isValid)
+                throw new UnauthorizedAccessException("Invalid or expired refresh token");
 
+            // Generate new tokens
+            var newJwtToken = await _userIdentityService.GenerateJwtTokenAsync(userId);
+            var newRefreshToken = await _userIdentityService.GenerateRefreshTokenAsync(userId);
 
-            // For now, we'll return a mock response
-            throw new NotImplementedException("Refresh token functionality not implemented yet");
+            // Get user info
+            var identityUser = await _unitOfWork.ApplicationUsers.GetByIdAsync(userId);
+            var user = identityUser?.DomainUser;
+            if (user == null)
+                throw new InvalidOperationException("User not found");
+
+            return new LoginResponseDto
+            {
+                Token = newJwtToken,
+                RefreshToken = newRefreshToken,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes),
+                User = new UserDto
+                {
+                    Id = user.Id,
+                    Email = user.Email.Value,
+                    Name = user.DisplayName,
+                    ProfilePicture = null
+                }
+            };
         }
 
         public async System.Threading.Tasks.Task<bool> ValidateTokenAsync(string token)
         {
-            // In a real implementation, you would validate the JWT token here
-            // For now, we'll just check if it's not empty
-            return !string.IsNullOrEmpty(token);
+            try
+            {
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_jwtSettings.Secret));
+                
+                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = key,
+                    ValidateIssuer = true,
+                    ValidIssuer = _jwtSettings.Issuer,
+                    ValidateAudience = true,
+                    ValidAudience = _jwtSettings.Audience,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
+                }, out SecurityToken validatedToken);
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public async System.Threading.Tasks.Task<UserDto> GetUserByIdAsync(Guid userId)
@@ -146,33 +205,26 @@ namespace TodoApp.Infrastructure.Services
             };
         }
 
-        private string GenerateJwtToken(User user)
+        private Guid ExtractUserIdFromToken(string token)
         {
-            var claims = new[]
+            // This is a simplified implementation
+            // You might want to decode the JWT or implement a proper mapping
+            try
             {
-                new System.Security.Claims.Claim("userId", user.Id.ToString()),
-                new System.Security.Claims.Claim("email", user.Email.Value),
-                new System.Security.Claims.Claim("name", user.DisplayName)
-            };
-
-            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_jwtSettings.Secret));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                issuer: _jwtSettings.Issuer,
-                audience: _jwtSettings.Audience,
-                claims: claims,
-                expires: DateTime.UtcNow.AddHours(24),
-                signingCredentials: creds);
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
-
-        private string GenerateRefreshToken()
-        {
-            // This is a placeholder implementation
-            // In a real application, you would generate a secure refresh token
-            return Guid.NewGuid().ToString();
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var jwt = tokenHandler.ReadJwtToken(token);
+                var userIdClaim = jwt.Claims.FirstOrDefault(c => c.Type == "sub" || c.Type == ClaimTypes.NameIdentifier);
+                if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId))
+                {
+                    return userId;
+                }
+            }
+            catch
+            {
+                // Handle token parsing errors
+            }
+            
+            throw new UnauthorizedAccessException("Invalid token format");
         }
     }
-} 
+}
