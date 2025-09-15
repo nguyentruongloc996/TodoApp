@@ -10,8 +10,6 @@ namespace TodoApp.Application.DTOs
         public string Email { get; set; }
         [Required]
         public string Password { get; set; }
-        [Required]
-        public string ConfirmPassword { get; set; }
     }
 
     public class LoginRequestDto
@@ -27,7 +25,7 @@ namespace TodoApp.Application.DTOs
         public string Token { get; set; }
         public string RefreshToken { get; set; }
         public DateTime ExpiresAt { get; set; }
-        public UserDto User { get; set; }
+        public ApplicationUserDto User { get; set; }
     }
 
     public class GoogleAuthRequestDto
@@ -50,6 +48,13 @@ namespace TodoApp.Application.DTOs
     }
 
     public class UserDto
+    {
+        public Guid Id { get; set; }
+        public string Email { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class ApplicationUserDto
     {
         public Guid Id { get; set; }
         public string Email { get; set; }

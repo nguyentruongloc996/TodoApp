@@ -6,6 +6,7 @@ using TodoApp.Application.DTOs;
 using TodoApp.Application.UseCases.Auth.Login;
 using TodoApp.Application.UseCases.Auth.GoogleLogin;
 using TodoApp.Application.UseCases.Auth.Register;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TodoApp.API.Controllers
 {

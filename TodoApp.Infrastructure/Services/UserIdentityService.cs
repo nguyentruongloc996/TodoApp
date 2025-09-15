@@ -108,32 +108,22 @@ namespace TodoApp.Infrastructure.Services
             return await _userManager.IsInRoleAsync(user, role);
         }
 
-        public async Task<List<Claim>> GetUserClaimsAsync(Guid userId)
+        private async Task<List<Claim>> GetUserClaimsAsync(ApplicationUser applicationUser)
         {
-            var user = await _userManager.FindByIdAsync(userId.ToString());
-            if (user == null)
-                throw new ArgumentException("User not found");
-
             var claims = new List<Claim>();
-
-            // Standard Identity claims
-            claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
-            claims.Add(new Claim(ClaimTypes.Name, user.UserName ?? string.Empty));
-            claims.Add(new Claim(ClaimTypes.Email, user.Email ?? string.Empty));
-
             // Custom claims from domain user
-            if (user.DomainUser != null)
+            if (applicationUser.DomainUser != null)
             {
-                claims.Add(new Claim("domainUserId", user.DomainUser.Id.ToString()));
-                claims.Add(new Claim("displayName", user.DomainUser.DisplayName));
+                claims.Add(new Claim("domainUserId", applicationUser.DomainUser.Id.ToString()));
+                claims.Add(new Claim("displayName", applicationUser.DomainUser.DisplayName));
             }
 
             // Get user claims from Identity
-            var userClaims = await _userManager.GetClaimsAsync(user);
+            var userClaims = await _userManager.GetClaimsAsync(applicationUser);
             claims.AddRange(userClaims);
 
             // Get role claims
-            var roles = await _userManager.GetRolesAsync(user);
+            var roles = await _userManager.GetRolesAsync(applicationUser);
             foreach (var role in roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
@@ -157,7 +147,7 @@ namespace TodoApp.Infrastructure.Services
                 throw new ArgumentException("User not found");
 
             // Get all claims using Identity's built-in claim management
-            var claims = await GetUserClaimsAsync(userId);
+            var claims = await GetUserClaimsAsync(user);
 
             // Add JWT specific claims
             claims.Add(new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()));

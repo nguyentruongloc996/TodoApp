@@ -19,12 +19,6 @@ namespace TodoApp.Infrastructure.Persistence.Repositories
             return await _context.DomainUsers.FindAsync(id);
         }
 
-        public async System.Threading.Tasks.Task<User?> GetByEmailAsync(string email)
-        {
-            return await _context.DomainUsers
-                .FirstOrDefaultAsync(u => u.Email.Equals(email));
-        }
-
         public async System.Threading.Tasks.Task<IEnumerable<User>> GetAllAsync()
         {
             return await _context.DomainUsers.ToListAsync();
@@ -33,7 +27,7 @@ namespace TodoApp.Infrastructure.Persistence.Repositories
         public async System.Threading.Tasks.Task<IEnumerable<User>> SearchByNameAsync(string name)
         {
             return await _context.DomainUsers
-                .Where(u => u.DisplayName.Contains(name))
+                .Where(u => u.DisplayName.ToLower().Contains(name.ToLower()))
                 .ToListAsync();
         }
 
@@ -64,11 +58,6 @@ namespace TodoApp.Infrastructure.Persistence.Repositories
         public async System.Threading.Tasks.Task<bool> ExistsAsync(Guid id)
         {
             return await _context.DomainUsers.AnyAsync(u => u.Id == id);
-        }
-
-        public async System.Threading.Tasks.Task<bool> ExistsByEmailAsync(string email)
-        {
-            return await _context.DomainUsers.AnyAsync(u => u.Email == new Email(email));
         }
     }
 } 

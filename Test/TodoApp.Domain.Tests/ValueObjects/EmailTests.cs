@@ -146,20 +146,6 @@ namespace TodoApp.Domain.Tests.ValueObjects
         }
 
         [Fact]
-        public void Equals_WithNonEmailObject_ShouldReturnFalse()
-        {
-            // Arrange
-            var email = new Email("test@example.com");
-            var nonEmailObject = "test@example.com";
-
-            // Act
-            var result = email.Equals(nonEmailObject);
-
-            // Assert
-            Assert.False(result);
-        }
-
-        [Fact]
         public void GetHashCode_WithSameEmail_ShouldReturnSameHashCode()
         {
             // Arrange

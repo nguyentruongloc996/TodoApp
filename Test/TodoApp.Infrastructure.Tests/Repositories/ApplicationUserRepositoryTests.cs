@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using TodoApp.Domain.Entities;
-using TodoApp.Domain.ValueObjects;
 using TodoApp.Infrastructure.Persistence;
 using TodoApp.Infrastructure.Persistence.Auth;
 using TodoApp.Infrastructure.Persistence.Repositories;
@@ -13,7 +12,6 @@ namespace TodoApp.Infrastructure.Tests.Repositories
     public class ApplicationUserRepositoryTests
     {
         private readonly DbContextOptions<ApplicationDbContext> _options;
-        private readonly IDataProtectionProvider _dataProtectionProvider = DataProtectionProvider.Create("ApplicationUserRepositoryTests");
 
         public ApplicationUserRepositoryTests()
         {
@@ -25,7 +23,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
         private ApplicationDbContext CreateContext()
         {
             // Pass seedData: false to disable seed data
-            var context = new ApplicationDbContext(_options, _dataProtectionProvider, seedData: false);
+            var context = new ApplicationDbContext(_options, seedData: false);
             context.Database.EnsureCreated();
             return context;
         }
@@ -40,7 +38,6 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             var domainUser = new User
             {
                 Id = Guid.NewGuid(),
-                Email = new Email("test@example.com"),
                 DisplayName = "Test User"
             };
 
@@ -92,7 +89,6 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             var domainUser = new User
             {
                 Id = Guid.NewGuid(),
-                Email = new Email("test@example.com"),
                 DisplayName = "Test User"
             };
 
@@ -117,8 +113,9 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             Assert.NotNull(result.DomainUser);
             Assert.Equal(applicationUser.Id, result.Id);
             Assert.Equal(domainUser.Id, result.DomainUser.Id);
-            Assert.Equal(domainUser.Email.Value, result.DomainUser.Email.Value);
             Assert.Equal(domainUser.DisplayName, result.DomainUser.DisplayName);
+            // Email verification is now on ApplicationUser, not Domain User
+            Assert.Equal(applicationUser.Email, result.Email);
         }
 
         [Fact]
@@ -147,7 +144,6 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             var domainUser = new User
             {
                 Id = Guid.NewGuid(),
-                Email = new Email(email),
                 DisplayName = "Test User"
             };
 
@@ -199,14 +195,12 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             var domainUser1 = new User
             {
                 Id = Guid.NewGuid(),
-                Email = new Email("user1@example.com"),
                 DisplayName = "User 1"
             };
 
             var domainUser2 = new User
             {
                 Id = Guid.NewGuid(),
-                Email = new Email("user2@example.com"),
                 DisplayName = "User 2"
             };
 
@@ -251,7 +245,6 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             var domainUser = new User
             {
                 Id = Guid.NewGuid(),
-                Email = new Email("test@example.com"),
                 DisplayName = "Test User"
             };
 
@@ -290,7 +283,6 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             var domainUser = new User
             {
                 Id = Guid.NewGuid(),
-                Email = new Email("original@example.com"),
                 DisplayName = "Original User"
             };
 
@@ -333,7 +325,6 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             var domainUser = new User
             {
                 Id = Guid.NewGuid(),
-                Email = new Email("test@example.com"),
                 DisplayName = "Test User"
             };
 
@@ -385,7 +376,6 @@ namespace TodoApp.Infrastructure.Tests.Repositories
                 var domainUser = new User
                 {
                     Id = Guid.NewGuid(),
-                    Email = new Email($"user{i}@example.com"),
                     DisplayName = $"User {i}"
                 };
 
@@ -429,20 +419,64 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             Assert.NotNull(result);
             Assert.Empty(result);
         }
+
+        [Fact]
+        public async System.Threading.Tasks.Task GetByDomainUserIdAsync_ShouldReturnApplicationUser_WhenUserExists()
+        {
+            // Arrange
+            using var context = CreateContext();
+            var repository = new ApplicationUserRepository(context);
+            
+            var domainUser = new User
+            {
+                Id = Guid.NewGuid(),
+                DisplayName = "Test User"
+            };
+
+            var applicationUser = new ApplicationUser
+            {
+                Id = Guid.NewGuid(),
+                UserName = "test@example.com",
+                Email = "test@example.com",
+                DomainUserId = domainUser.Id,
+                DomainUser = domainUser
+            };
+
+            context.DomainUsers.Add(domainUser);
+            context.Users.Add(applicationUser);
+            await context.SaveChangesAsync();
+
+            // Act
+            var result = await repository.GetByDomainUserIdAsync(domainUser.Id);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(applicationUser.Id, result.Id);
+            Assert.Equal(domainUser.Id, result.DomainUserId);
+            Assert.Equal(applicationUser.Email, result.Email);
+        }
+
+        [Fact]
+        public async System.Threading.Tasks.Task GetByDomainUserIdAsync_ShouldReturnNull_WhenUserDoesNotExist()
+        {
+            // Arrange
+            using var context = CreateContext();
+            var repository = new ApplicationUserRepository(context);
+            var nonExistentDomainUserId = Guid.NewGuid();
+
+            // Act
+            var result = await repository.GetByDomainUserIdAsync(nonExistentDomainUserId);
+
+            // Assert
+            Assert.Null(result);
+        }
     }
 
     // Test-specific DbContext without seed data
     public class TestApplicationDbContext : ApplicationDbContext
     {
-        public TestApplicationDbContext(DbContextOptions<ApplicationDbContext> options,
-            IDataProtectionProvider dataProtectionProvider) : base(options, dataProtectionProvider)
+        public TestApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options, seedData: false)
         {
-        }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
-            // Don't call SeedData(modelBuilder) for tests
         }
     }
 }

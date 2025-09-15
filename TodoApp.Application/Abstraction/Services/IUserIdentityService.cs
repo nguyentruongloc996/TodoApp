@@ -20,7 +20,6 @@ namespace TodoApp.Application.Abstraction.Services
         Task<bool> IsInRoleAsync(Guid userId, string role);
         
         // New methods for JWT token generation using Identity
-        Task<List<Claim>> GetUserClaimsAsync(Guid userId);
         Task<string> GenerateJwtTokenAsync(Guid userId);
         Task<string> GenerateRefreshTokenAsync(Guid userId);
         Task<bool> ValidateRefreshTokenAsync(Guid userId, string refreshToken);

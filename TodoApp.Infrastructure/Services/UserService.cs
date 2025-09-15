@@ -19,7 +19,6 @@ namespace TodoApp.Infrastructure.Services
             var user = new User
             {
                 Id = Guid.NewGuid(),
-                Email = new TodoApp.Domain.ValueObjects.Email(userDto.Email),
                 DisplayName = userDto.Name
             };
 
@@ -29,9 +28,7 @@ namespace TodoApp.Infrastructure.Services
             return new UserDto
             {
                 Id = createdUser.Id,
-                Email = createdUser.Email.Value,
-                Name = createdUser.DisplayName,
-                ProfilePicture = userDto.ProfilePicture
+                Name = createdUser.DisplayName
             };
         }
 
@@ -41,7 +38,6 @@ namespace TodoApp.Infrastructure.Services
             if (user == null)
                 throw new ArgumentException("User not found");
 
-            user.Email = new TodoApp.Domain.ValueObjects.Email(userDto.Email);
             user.DisplayName = userDto.Name;
 
             var updatedUser = await _unitOfWork.DomainUsers.UpdateAsync(user);
@@ -50,9 +46,7 @@ namespace TodoApp.Infrastructure.Services
             return new UserDto
             {
                 Id = updatedUser.Id,
-                Email = updatedUser.Email.Value,
-                Name = updatedUser.DisplayName,
-                ProfilePicture = userDto.ProfilePicture
+                Name = updatedUser.DisplayName
             };
         }
 
@@ -66,25 +60,7 @@ namespace TodoApp.Infrastructure.Services
             return new UserDto
             {
                 Id = user.Id,
-                Email = user.Email.Value,
-                Name = user.DisplayName,
-                ProfilePicture = null
-            };
-        }
-
-        public async System.Threading.Tasks.Task<UserDto> GetUserByEmailAsync(string email)
-        {
-            var user = await _unitOfWork.DomainUsers.GetByEmailAsync(email);
-            
-            if (user == null)
-                throw new ArgumentException("User not found");
-
-            return new UserDto
-            {
-                Id = user.Id,
-                Email = user.Email.Value,
-                Name = user.DisplayName,
-                ProfilePicture = null
+                Name = user.DisplayName
             };
         }
 
@@ -95,9 +71,7 @@ namespace TodoApp.Infrastructure.Services
             return users.Select(user => new UserDto
             {
                 Id = user.Id,
-                Email = user.Email.Value,
-                Name = user.DisplayName,
-                ProfilePicture = null
+                Name = user.DisplayName
             }).ToList();
         }
 
@@ -112,28 +86,18 @@ namespace TodoApp.Infrastructure.Services
             return true;
         }
 
-        public async System.Threading.Tasks.Task<bool> InviteUserAsync(Guid inviterId, string email, string message)
-        {
-            // In a real implementation, you would send an invitation email here
-            // For now, we'll just check if the user exists
-            var existingUser = await _unitOfWork.DomainUsers.GetByEmailAsync(email);
-            return existingUser != null;
-        }
-
         // Update methods to work with the new relationship
         public async Task<UserDto> GetUserByIdentityIdAsync(Guid identityUserId)
         {
-            var applicationUser = await _unitOfWork.ApplicationUsers.GetByIdAsync(identityUserId);
+            var user = await _unitOfWork.DomainUsers.GetByIdAsync(identityUserId);
             
-            if (applicationUser?.DomainUser == null)
-                throw new ArgumentException("User not found");
+            if (user == null)
+                throw new ArgumentException("Domain user not found");
 
             return new UserDto
             {
-                Id = applicationUser.DomainUser.Id,
-                Email = applicationUser.DomainUser.Email.Value,
-                Name = applicationUser.DomainUser.DisplayName,
-                ProfilePicture = null
+                Id = user.Id,
+                Name = user.DisplayName
             };
         }
     }

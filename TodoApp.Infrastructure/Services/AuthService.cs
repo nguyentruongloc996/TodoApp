@@ -31,7 +31,6 @@ namespace TodoApp.Infrastructure.Services
             var user = new User
             {
                 Id = Guid.NewGuid(),
-                Email = email,
                 DisplayName = command.Request.Name
             };
             var identityUserId = await _userIdentityService.CreateUserAsync(email.Value, command.Request.Password, user);
@@ -41,7 +40,7 @@ namespace TodoApp.Infrastructure.Services
 
             return new RegisterRequestDto
             {
-                Email = user.Email.Value,
+                Email = email.Value,
                 Name = user.DisplayName,
                 Password = command.Request.Password
             };
@@ -73,10 +72,10 @@ namespace TodoApp.Infrastructure.Services
                 Token = jwtToken,
                 RefreshToken = refreshToken,
                 ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes),
-                User = new UserDto
+                User = new ApplicationUserDto
                 {
-                    Id = user.Id,
-                    Email = user.Email.Value,
+                    Id = identityUser.Id,
+                    Email = identityUser.Email ?? string.Empty,
                     Name = user.DisplayName,
                     ProfilePicture = null
                 }
@@ -89,21 +88,7 @@ namespace TodoApp.Infrastructure.Services
             // For now, we'll create a mock user
             
             var mockEmail = "google.user@example.com";
-            var existingUser = await _unitOfWork.DomainUsers.GetByEmailAsync(mockEmail);
-            
-            if (existingUser == null)
-            {
-                // Create new user
-                var newUser = new User
-                {
-                    Id = Guid.NewGuid(),
-                    Email = new TodoApp.Domain.ValueObjects.Email(mockEmail),
-                    DisplayName = "Google User"
-                };
-
-                existingUser = await _unitOfWork.DomainUsers.AddAsync(newUser);
-                await _unitOfWork.SaveChangesAsync();
-            }
+            var existingUser = await _unitOfWork.ApplicationUsers.GetByEmailAsync(mockEmail);
 
             // Find the corresponding Identity user
             var identityUser = await _unitOfWork.ApplicationUsers.GetByDomainUserIdAsync(existingUser.Id);
@@ -118,11 +103,11 @@ namespace TodoApp.Infrastructure.Services
                 Token = jwtToken,
                 RefreshToken = refreshToken,
                 ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes),
-                User = new UserDto
+                User = new ApplicationUserDto
                 {
                     Id = existingUser.Id,
-                    Email = existingUser.Email.Value,
-                    Name = existingUser.DisplayName,
+                    Email = existingUser.Email ?? string.Empty,
+                    Name = identityUser.DomainUser.DisplayName,
                     ProfilePicture = null
                 }
             };
@@ -144,6 +129,10 @@ namespace TodoApp.Infrastructure.Services
 
             // Get user info
             var identityUser = await _unitOfWork.ApplicationUsers.GetByIdAsync(userId);
+
+            if (identityUser == null)
+                throw new InvalidOperationException("User not found");
+
             var user = identityUser?.DomainUser;
             if (user == null)
                 throw new InvalidOperationException("User not found");
@@ -153,55 +142,13 @@ namespace TodoApp.Infrastructure.Services
                 Token = newJwtToken,
                 RefreshToken = newRefreshToken,
                 ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes),
-                User = new UserDto
+                User = new ApplicationUserDto
                 {
-                    Id = user.Id,
-                    Email = user.Email.Value,
+                    Id = identityUser.Id,
+                    Email = identityUser.Email,
                     Name = user.DisplayName,
                     ProfilePicture = null
                 }
-            };
-        }
-
-        public async System.Threading.Tasks.Task<bool> ValidateTokenAsync(string token)
-        {
-            try
-            {
-                var tokenHandler = new JwtSecurityTokenHandler();
-                var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_jwtSettings.Secret));
-                
-                tokenHandler.ValidateToken(token, new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = key,
-                    ValidateIssuer = true,
-                    ValidIssuer = _jwtSettings.Issuer,
-                    ValidateAudience = true,
-                    ValidAudience = _jwtSettings.Audience,
-                    ValidateLifetime = true,
-                    ClockSkew = TimeSpan.Zero
-                }, out SecurityToken validatedToken);
-
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        public async System.Threading.Tasks.Task<UserDto> GetUserByIdAsync(Guid userId)
-        {
-            var user = await _unitOfWork.DomainUsers.GetByIdAsync(userId);
-            if (user == null)
-                throw new ArgumentException("User not found");
-
-            return new UserDto
-            {
-                Id = user.Id,
-                Email = user.Email.Value,
-                Name = user.DisplayName,
-                ProfilePicture = null
             };
         }
 

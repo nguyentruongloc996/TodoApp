@@ -8,8 +8,6 @@ namespace TodoApp.Application.Abstraction.Services
         Task<LoginResponseDto> LoginAsync(LoginRequestDto request);
         Task<LoginResponseDto> GoogleLoginAsync(GoogleAuthRequestDto request);
         Task<LoginResponseDto> RefreshTokenAsync(RefreshTokenRequestDto request);
-        Task<bool> ValidateTokenAsync(string token);
-        Task<UserDto> GetUserByIdAsync(Guid userId);
         Task<RegisterRequestDto> RegisterAsync(RegisterCommand command);
     }
 } 

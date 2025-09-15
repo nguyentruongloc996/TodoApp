@@ -12,7 +12,6 @@ namespace TodoApp.Domain.Tests.Entities
         public void CreateUser_WithValidData_ShouldSetProperties()
         {
             // Arrange
-            var email = new Email("user@example.com");
             var name = "Test User";
             var groupIds = new List<Guid> { Guid.NewGuid() };
 
@@ -20,13 +19,11 @@ namespace TodoApp.Domain.Tests.Entities
             var user = new User
             {
                 Id = Guid.NewGuid(),
-                Email = email,
                 DisplayName = name,
                 GroupIds = groupIds
             };
 
             // Assert
-            Assert.Equal(email, user.Email);
             Assert.Equal(name, user.DisplayName);
             Assert.Equal(groupIds, user.GroupIds);
         }

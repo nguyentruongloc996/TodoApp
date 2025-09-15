@@ -12,7 +12,6 @@ namespace TodoApp.Infrastructure.Tests.Repositories
     public class TaskRepositoryTests
     {
         private readonly DbContextOptions<ApplicationDbContext> _options;
-        private readonly IDataProtectionProvider _dataProtectionProvider = DataProtectionProvider.Create("TaskRepositoryTests");
 
         public TaskRepositoryTests()
         {
@@ -23,7 +22,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
 
         private ApplicationDbContext CreateContext()
         {
-            var context = new ApplicationDbContext(_options, _dataProtectionProvider, seedData: false);
+            var context = new ApplicationDbContext(_options, seedData: false);
             context.Database.EnsureCreated();
             return context;
         }

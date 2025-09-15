@@ -51,7 +51,8 @@ app.UseCors("AllowFrontend");
 
 app.UseHttpsRedirection();
 app.UseMiddleware<ErrorHandlingMiddleware>();
-app.UseMiddleware<JwtAuthenticationMiddleware>();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseRouting();
 app.MapControllers();

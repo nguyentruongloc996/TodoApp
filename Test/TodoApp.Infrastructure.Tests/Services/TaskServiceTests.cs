@@ -27,7 +27,7 @@ namespace TodoApp.Infrastructure.Tests.Services
         public async System.Threading.Tasks.Task CreateTaskAsync_ShouldCreateNewTask()
         {
             // Arrange
-            using var context = new ApplicationDbContext(_options, _dataProtectionProvider);
+            using var context = new ApplicationDbContext(_options, seedData: false);
             var unitOfWork = new UnitOfWork(context);
             var service = new TaskService(unitOfWork);
             var createTaskDto = new CreateTaskDto
@@ -51,7 +51,7 @@ namespace TodoApp.Infrastructure.Tests.Services
         public async System.Threading.Tasks.Task UpdateTaskAsync_ShouldUpdateExistingTask()
         {
             // Arrange
-            using var context = new ApplicationDbContext(_options, _dataProtectionProvider);
+            using var context = new ApplicationDbContext(_options, seedData: false);
             var unitOfWork = new UnitOfWork(context);
             var service = new TaskService(unitOfWork);
             
@@ -87,10 +87,10 @@ namespace TodoApp.Infrastructure.Tests.Services
         public async System.Threading.Tasks.Task CompleteTaskAsync_ShouldMarkTaskAsCompleted()
         {
             // Arrange
-            using var context = new ApplicationDbContext(_options, _dataProtectionProvider);
+            using var context = new ApplicationDbContext(_options, seedData: false);
             var unitOfWork = new UnitOfWork(context);
             var service = new TaskService(unitOfWork);
-            
+                
             var createTaskDto = new CreateTaskDto
             {
                 Description = "Test Task",
@@ -111,7 +111,7 @@ namespace TodoApp.Infrastructure.Tests.Services
         public async System.Threading.Tasks.Task DeleteTaskAsync_ShouldReturnTrue_WhenTaskExists()
         {
             // Arrange
-            using var context = new ApplicationDbContext(_options, _dataProtectionProvider);
+            using var context = new ApplicationDbContext(_options, seedData: false);
             var unitOfWork = new UnitOfWork(context);
             var service = new TaskService(unitOfWork);
             
@@ -134,7 +134,7 @@ namespace TodoApp.Infrastructure.Tests.Services
         public async System.Threading.Tasks.Task DeleteTaskAsync_ShouldReturnFalse_WhenTaskDoesNotExist()
         {
             // Arrange
-            using var context = new ApplicationDbContext(_options, _dataProtectionProvider);
+            using var context = new ApplicationDbContext(_options, seedData: false);
             var unitOfWork = new UnitOfWork(context);
             var service = new TaskService(unitOfWork);
             var nonExistentId = Guid.NewGuid();
@@ -150,7 +150,7 @@ namespace TodoApp.Infrastructure.Tests.Services
         public async System.Threading.Tasks.Task UpdateTaskAsync_ShouldThrowException_WhenTaskNotFound()
         {
             // Arrange
-            using var context = new ApplicationDbContext(_options, _dataProtectionProvider);
+            using var context = new ApplicationDbContext(_options, seedData: false);
             var unitOfWork = new UnitOfWork(context);
             var service = new TaskService(unitOfWork);
             var nonExistentId = Guid.NewGuid();
@@ -172,7 +172,7 @@ namespace TodoApp.Infrastructure.Tests.Services
         public async System.Threading.Tasks.Task CompleteTaskAsync_ShouldThrowException_WhenTaskNotFound()
         {
             // Arrange
-            using var context = new ApplicationDbContext(_options, _dataProtectionProvider);
+            using var context = new ApplicationDbContext(_options, seedData: false);
             var unitOfWork = new UnitOfWork(context);
             var service = new TaskService(unitOfWork);
             var nonExistentId = Guid.NewGuid();
@@ -181,4 +181,4 @@ namespace TodoApp.Infrastructure.Tests.Services
             await Assert.ThrowsAsync<ArgumentException>(() => service.CompleteTaskAsync(nonExistentId));
         }
     }
-} 
+}

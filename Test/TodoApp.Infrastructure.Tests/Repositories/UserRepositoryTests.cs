@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using TodoApp.Domain.Entities;
-using TodoApp.Domain.ValueObjects;
 using TodoApp.Infrastructure.Persistence;
 using TodoApp.Infrastructure.Persistence.Repositories;
 using Xunit;
@@ -11,7 +10,6 @@ namespace TodoApp.Infrastructure.Tests.Repositories
     public class UserRepositoryTests
     {
         private readonly DbContextOptions<ApplicationDbContext> _options;
-        private readonly IDataProtectionProvider _dataProtectionProvider = DataProtectionProvider.Create("TestApp");
 
         public UserRepositoryTests()
         {
@@ -22,7 +20,7 @@ namespace TodoApp.Infrastructure.Tests.Repositories
 
         private ApplicationDbContext CreateContext()
         {
-            var context = new ApplicationDbContext(_options, _dataProtectionProvider, seedData: false);
+            var context = new ApplicationDbContext(_options, seedData: false);
             context.Database.EnsureCreated();
             return context;
         }
@@ -36,7 +34,6 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             var user = new User
             {
                 Id = Guid.NewGuid(),
-                Email = new Email("test@example.com"),
                 DisplayName = "Test User"
             };
 
@@ -46,7 +43,6 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             // Assert
             Assert.NotNull(result);
             Assert.Equal(user.Id, result.Id);
-            Assert.Equal(user.Email.Value, result.Email.Value);
             Assert.Equal(user.DisplayName, result.DisplayName);
 
             // Verify it's in the database
@@ -63,7 +59,6 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             var user = new User
             {
                 Id = Guid.NewGuid(),
-                Email = new Email("test@example.com"),
                 DisplayName = "Test User"
             };
             await repository.AddAsync(user);
@@ -74,7 +69,6 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             // Assert
             Assert.NotNull(result);
             Assert.Equal(user.Id, result.Id);
-            Assert.Equal(user.Email.Value, result.Email.Value);
             Assert.Equal(user.DisplayName, result.DisplayName);
         }
 
@@ -94,46 +88,6 @@ namespace TodoApp.Infrastructure.Tests.Repositories
         }
 
         [Fact]
-        public async System.Threading.Tasks.Task GetByEmailAsync_ShouldReturnUser_WhenUserExists()
-        {
-            // Arrange
-            using var context = CreateContext();
-            var repository = new UserRepository(context);
-            var email = "test@example.com";
-            var user = new User
-            {
-                Id = Guid.NewGuid(),
-                Email = new Email(email),
-                DisplayName = "Test User"
-            };
-            await repository.AddAsync(user);
-
-            // Act
-            var result = await repository.GetByEmailAsync(email);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(user.Id, result.Id);
-            Assert.Equal(user.Email.Value, result.Email.Value);
-            Assert.Equal(user.DisplayName, result.DisplayName);
-        }
-
-        [Fact]
-        public async System.Threading.Tasks.Task GetByEmailAsync_ShouldReturnNull_WhenUserDoesNotExist()
-        {
-            // Arrange
-            using var context = CreateContext();
-            var repository = new UserRepository(context);
-            var nonExistentEmail = "nonexistent@example.com";
-
-            // Act
-            var result = await repository.GetByEmailAsync(nonExistentEmail);
-
-            // Assert
-            Assert.Null(result);
-        }
-
-        [Fact]
         public async System.Threading.Tasks.Task GetAllAsync_ShouldReturnAllUsers()
         {
             // Arrange
@@ -142,13 +96,11 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             var user1 = new User
             {
                 Id = Guid.NewGuid(),
-                Email = new Email("user1@example.com"),
                 DisplayName = "User 1"
             };
             var user2 = new User
             {
                 Id = Guid.NewGuid(),
-                Email = new Email("user2@example.com"),
                 DisplayName = "User 2"
             };
             await repository.AddAsync(user1);
@@ -172,19 +124,16 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             var user1 = new User
             {
                 Id = Guid.NewGuid(),
-                Email = new Email("john@example.com"),
                 DisplayName = "John Doe"
             };
             var user2 = new User
             {
                 Id = Guid.NewGuid(),
-                Email = new Email("jane@example.com"),
                 DisplayName = "Jane Smith"
             };
             var user3 = new User
             {
                 Id = Guid.NewGuid(),
-                Email = new Email("johnny@example.com"),
                 DisplayName = "Johnny Johnson"
             };
             await repository.AddAsync(user1);
@@ -210,13 +159,11 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             var user = new User
             {
                 Id = Guid.NewGuid(),
-                Email = new Email("original@example.com"),
                 DisplayName = "Original Name"
             };
             await repository.AddAsync(user);
 
             // Update user properties
-            user.Email = new Email("updated@example.com");
             user.DisplayName = "Updated Name";
 
             // Act
@@ -224,13 +171,47 @@ namespace TodoApp.Infrastructure.Tests.Repositories
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal("updated@example.com", result.Email.Value);
             Assert.Equal("Updated Name", result.DisplayName);
 
             // Verify in database
             var userInDb = await repository.GetByIdAsync(user.Id);
-            Assert.Equal("updated@example.com", userInDb!.Email.Value);
-            Assert.Equal("Updated Name", userInDb.DisplayName);
+            Assert.Equal("Updated Name", userInDb!.DisplayName);
+        }
+
+        [Fact]
+        public async System.Threading.Tasks.Task UpdateAsync_ShouldUpdateUserGroupIds()
+        {
+            // Arrange
+            using var context = CreateContext();
+            var repository = new UserRepository(context);
+            var user = new User
+            {
+                Id = Guid.NewGuid(),
+                DisplayName = "Test User",
+                GroupIds = new List<Guid>()
+            };
+            await repository.AddAsync(user);
+
+            // Update user group memberships
+            var groupId1 = Guid.NewGuid();
+            var groupId2 = Guid.NewGuid();
+            user.GroupIds.Add(groupId1);
+            user.GroupIds.Add(groupId2);
+
+            // Act
+            var result = await repository.UpdateAsync(user);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(2, result.GroupIds.Count);
+            Assert.Contains(groupId1, result.GroupIds);
+            Assert.Contains(groupId2, result.GroupIds);
+
+            // Verify in database
+            var userInDb = await repository.GetByIdAsync(user.Id);
+            Assert.Equal(2, userInDb!.GroupIds.Count);
+            Assert.Contains(groupId1, userInDb.GroupIds);
+            Assert.Contains(groupId2, userInDb.GroupIds);
         }
 
         [Fact]
@@ -242,7 +223,6 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             var user = new User
             {
                 Id = Guid.NewGuid(),
-                Email = new Email("test@example.com"),
                 DisplayName = "Test User"
             };
             await repository.AddAsync(user);
@@ -277,7 +257,6 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             var user = new User
             {
                 Id = Guid.NewGuid(),
-                Email = new Email("test@example.com"),
                 DisplayName = "Test User"
             };
             await repository.AddAsync(user);
@@ -305,42 +284,44 @@ namespace TodoApp.Infrastructure.Tests.Repositories
         }
 
         [Fact]
-        public async System.Threading.Tasks.Task ExistsByEmailAsync_ShouldReturnTrue_WhenUserExists()
+        public async System.Threading.Tasks.Task SearchByNameAsync_ShouldReturnEmptyList_WhenNoMatches()
         {
             // Arrange
             using var context = CreateContext();
             var repository = new UserRepository(context);
-            var email = "test@example.com";
             var user = new User
             {
                 Id = Guid.NewGuid(),
-                Email = new Email(email),
-                DisplayName = "Test User"
+                DisplayName = "John Doe"
             };
             await repository.AddAsync(user);
 
-            var userById = await repository.GetByIdAsync(user.Id);
-
             // Act
-            var result = await repository.ExistsByEmailAsync(email);
+            var result = await repository.SearchByNameAsync("NonExistent");
 
             // Assert
-            Assert.True(result);
+            Assert.Empty(result);
         }
 
         [Fact]
-        public async System.Threading.Tasks.Task ExistsByEmailAsync_ShouldReturnFalse_WhenUserDoesNotExist()
+        public async System.Threading.Tasks.Task SearchByNameAsync_ShouldBeCaseInsensitive()
         {
             // Arrange
             using var context = CreateContext();
             var repository = new UserRepository(context);
-            var nonExistentEmail = "nonexistent@example.com";
+            var user = new User
+            {
+                Id = Guid.NewGuid(),
+                DisplayName = "John Doe"
+            };
+            await repository.AddAsync(user);
 
             // Act
-            var result = await repository.ExistsByEmailAsync(nonExistentEmail);
+            var result = await repository.SearchByNameAsync("john");
 
             // Assert
-            Assert.False(result);
+            Assert.Single(result);
+            Assert.Contains(result, u => u.Id == user.Id);
         }
     }
 }

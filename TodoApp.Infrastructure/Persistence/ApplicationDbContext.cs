@@ -11,14 +11,11 @@ namespace TodoApp.Infrastructure.Persistence
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
     {
-        private readonly IDataProtectionProvider _dataProtectionProvider;
         private readonly bool _seedData;
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options,
-            IDataProtectionProvider dataProtectionProvider, 
             bool seedData = true) : base(options) 
         { 
-            _dataProtectionProvider = dataProtectionProvider;
             _seedData = seedData;
         }
 
@@ -33,7 +30,7 @@ namespace TodoApp.Infrastructure.Persistence
 
             // Apply configurations
             modelBuilder.ApplyConfiguration(new TaskConfiguration());
-            modelBuilder.ApplyConfiguration(new UserConfiguration(_dataProtectionProvider));
+            modelBuilder.ApplyConfiguration(new UserConfiguration());
             modelBuilder.ApplyConfiguration(new ApplicationUserConfiguration());
             modelBuilder.ApplyConfiguration(new GroupConfiguration());
             modelBuilder.ApplyConfiguration(new SubTaskConfiguration());
@@ -51,7 +48,6 @@ namespace TodoApp.Infrastructure.Persistence
             var testUser1 = new User
             {
                 Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
-                Email = new Email("test1@example.com"),
                 DisplayName = "Test User 1",
                 GroupIds = new List<Guid>()
             };
@@ -59,7 +55,6 @@ namespace TodoApp.Infrastructure.Persistence
             var testUser2 = new User
             {
                 Id = Guid.Parse("22222222-2222-2222-2222-222222222222"),
-                Email = new Email("test2@example.com"),
                 DisplayName = "Test User 2",
                 GroupIds = new List<Guid>()
             };
@@ -68,26 +63,28 @@ namespace TodoApp.Infrastructure.Persistence
 
             // Then seed Identity Users that reference Domain Users
             var hasher = new PasswordHasher<ApplicationUser>();
-            
+
+            var test1Email = new Email("test1@example.com");
             var identityUser1 = new ApplicationUser
             {
                 Id = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
-                UserName = testUser1.Email.Value,
-                Email = testUser1.Email.Value,
-                NormalizedUserName = testUser1.Email.Value.ToUpperInvariant(),
-                NormalizedEmail = testUser1.Email.Value.ToUpperInvariant(),
+                UserName = testUser1.DisplayName,
+                Email = "test1@example.com",
+                NormalizedUserName = testUser1.DisplayName.ToUpperInvariant(),
+                NormalizedEmail = test1Email.Value.ToUpperInvariant(),
                 EmailConfirmed = true,
                 DomainUserId = testUser1.Id
             };
             identityUser1.PasswordHash = hasher.HashPassword(identityUser1, "PasswordUser1!");
 
+            var test2Email = new Email("test2@example.com");
             var identityUser2 = new ApplicationUser
             {
                 Id = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
-                UserName = testUser2.Email.Value,
-                Email = testUser2.Email.Value,
-                NormalizedUserName = testUser2.Email.Value.ToUpperInvariant(),
-                NormalizedEmail = testUser2.Email.Value.ToUpperInvariant(),
+                UserName = testUser2.DisplayName,
+                Email = test2Email.Value,
+                NormalizedUserName = testUser2.DisplayName.ToUpperInvariant(),
+                NormalizedEmail = test2Email.Value.ToUpperInvariant(),
                 EmailConfirmed = true,
                 DomainUserId = testUser2.Id
             };
