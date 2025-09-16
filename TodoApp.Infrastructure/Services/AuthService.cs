@@ -54,7 +54,7 @@ namespace TodoApp.Infrastructure.Services
             if (!authResult.IsSuccess || !authResult.IdentityUserId.HasValue)
                 throw new UnauthorizedAccessException(string.IsNullOrEmpty(authResult.ErrorMessage) ? string.Empty : authResult.ErrorMessage);
 
-            var identityUser = await _unitOfWork.ApplicationUsers.GetByIdAsync(authResult.IdentityUserId.Value);
+            var identityUser = await _unitOfWork.ApplicationUsers.GetByIdWithDomainUserAsync(authResult.IdentityUserId.Value);
             // Get domain user by IdentityUserId
             var user = identityUser?.DomainUser;
             if (user == null)
@@ -72,9 +72,10 @@ namespace TodoApp.Infrastructure.Services
                 Token = jwtToken,
                 RefreshToken = refreshToken,
                 ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes),
-                User = new ApplicationUserDto
+                User = new UserDto
                 {
-                    Id = identityUser.Id,
+                    IdentityId = identityUser.Id,
+                    UserId = user.Id,
                     Email = identityUser.Email ?? string.Empty,
                     Name = user.DisplayName,
                     ProfilePicture = null
@@ -90,24 +91,23 @@ namespace TodoApp.Infrastructure.Services
             var mockEmail = "google.user@example.com";
             var existingUser = await _unitOfWork.ApplicationUsers.GetByEmailAsync(mockEmail);
 
-            // Find the corresponding Identity user
-            var identityUser = await _unitOfWork.ApplicationUsers.GetByDomainUserIdAsync(existingUser.Id);
-            if (identityUser == null)
+            if (existingUser == null)
                 throw new InvalidOperationException("Identity user not found for domain user");
 
-            var jwtToken = await _userIdentityService.GenerateJwtTokenAsync(identityUser.Id);
-            var refreshToken = await _userIdentityService.GenerateRefreshTokenAsync(identityUser.Id);
+            var jwtToken = await _userIdentityService.GenerateJwtTokenAsync(existingUser.Id);
+            var refreshToken = await _userIdentityService.GenerateRefreshTokenAsync(existingUser.Id);
 
             return new LoginResponseDto
             {
                 Token = jwtToken,
                 RefreshToken = refreshToken,
                 ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes),
-                User = new ApplicationUserDto
+                User = new UserDto
                 {
-                    Id = existingUser.Id,
+                    IdentityId = existingUser.Id,
+                    UserId = existingUser.DomainUser.Id,
                     Email = existingUser.Email ?? string.Empty,
-                    Name = identityUser.DomainUser.DisplayName,
+                    Name = existingUser.DomainUser.DisplayName,
                     ProfilePicture = null
                 }
             };
@@ -128,7 +128,7 @@ namespace TodoApp.Infrastructure.Services
             var newRefreshToken = await _userIdentityService.GenerateRefreshTokenAsync(userId);
 
             // Get user info
-            var identityUser = await _unitOfWork.ApplicationUsers.GetByIdAsync(userId);
+            var identityUser = await _unitOfWork.ApplicationUsers.GetByIdWithDomainUserAsync(userId);
 
             if (identityUser == null)
                 throw new InvalidOperationException("User not found");
@@ -142,9 +142,10 @@ namespace TodoApp.Infrastructure.Services
                 Token = newJwtToken,
                 RefreshToken = newRefreshToken,
                 ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes),
-                User = new ApplicationUserDto
+                User = new UserDto
                 {
-                    Id = identityUser.Id,
+                    IdentityId = identityUser.Id,
+                    UserId = user.Id,
                     Email = identityUser.Email,
                     Name = user.DisplayName,
                     ProfilePicture = null

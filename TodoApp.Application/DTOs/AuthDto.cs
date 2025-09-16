@@ -25,7 +25,7 @@ namespace TodoApp.Application.DTOs
         public string Token { get; set; }
         public string RefreshToken { get; set; }
         public DateTime ExpiresAt { get; set; }
-        public ApplicationUserDto User { get; set; }
+        public UserDto User { get; set; }
     }
 
     public class GoogleAuthRequestDto
@@ -49,14 +49,8 @@ namespace TodoApp.Application.DTOs
 
     public class UserDto
     {
-        public Guid Id { get; set; }
-        public string Email { get; set; }
-        public string Name { get; set; }
-    }
-
-    public class ApplicationUserDto
-    {
-        public Guid Id { get; set; }
+        public Guid IdentityId { get; set; }
+        public Guid UserId { get; set; }
         public string Email { get; set; }
         public string Name { get; set; }
         public string? ProfilePicture { get; set; }

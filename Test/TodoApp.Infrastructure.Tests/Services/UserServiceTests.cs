@@ -50,7 +50,7 @@ namespace TodoApp.Infrastructure.Tests.Services
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(expectedUser.Id, result.Id);
+            Assert.Equal(expectedUser.Id, result.IdentityId);
             Assert.Equal(expectedUser.DisplayName, result.Name);
             // Note: Email is not stored in Domain.User anymore, so we don't verify it here
 
@@ -92,7 +92,7 @@ namespace TodoApp.Infrastructure.Tests.Services
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(userId, result.Id);
+            Assert.Equal(userId, result.IdentityId);
             Assert.Equal(userDto.Name, result.Name);
             // Note: Email is not updated in Domain.User
 
@@ -146,7 +146,7 @@ namespace TodoApp.Infrastructure.Tests.Services
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(user.Id, result.Id);
+            Assert.Equal(user.Id, result.IdentityId);
             Assert.Equal(user.DisplayName, result.Name);
             // Note: Email is not returned since it's not stored in Domain.User
 
@@ -189,7 +189,7 @@ namespace TodoApp.Infrastructure.Tests.Services
                 DomainUser = domainUser
             };
 
-            _mockApplicationUserRepository.Setup(x => x.GetByIdAsync(identityUserId))
+            _mockApplicationUserRepository.Setup(x => x.GetByIdWithDomainUserAsync(identityUserId))
                 .ReturnsAsync(applicationUser);
 
             // Act
@@ -197,10 +197,10 @@ namespace TodoApp.Infrastructure.Tests.Services
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(domainUser.Id, result.Id);
+            Assert.Equal(domainUser.Id, result.IdentityId);
             Assert.Equal(domainUser.DisplayName, result.Name);
 
-            _mockApplicationUserRepository.Verify(x => x.GetByIdAsync(identityUserId), Times.Once);
+            _mockApplicationUserRepository.Verify(x => x.GetByIdWithDomainUserAsync(identityUserId), Times.Once);
         }
 
         [Fact]
@@ -208,7 +208,7 @@ namespace TodoApp.Infrastructure.Tests.Services
         {
             // Arrange
             var identityUserId = Guid.NewGuid();
-            _mockApplicationUserRepository.Setup(x => x.GetByIdAsync(identityUserId))
+            _mockApplicationUserRepository.Setup(x => x.GetByIdWithDomainUserAsync(identityUserId))
                 .ReturnsAsync((ApplicationUser?)null);
 
             // Act & Assert
@@ -216,7 +216,7 @@ namespace TodoApp.Infrastructure.Tests.Services
                 () => _userService.GetUserByIdentityIdAsync(identityUserId));
 
             Assert.Equal("User not found", exception.Message);
-            _mockApplicationUserRepository.Verify(x => x.GetByIdAsync(identityUserId), Times.Once);
+            _mockApplicationUserRepository.Verify(x => x.GetByIdWithDomainUserAsync(identityUserId), Times.Once);
         }
 
         [Fact]
@@ -233,7 +233,7 @@ namespace TodoApp.Infrastructure.Tests.Services
                 DomainUser = null! // Domain user is null
             };
 
-            _mockApplicationUserRepository.Setup(x => x.GetByIdAsync(identityUserId))
+            _mockApplicationUserRepository.Setup(x => x.GetByIdWithDomainUserAsync(identityUserId))
                 .ReturnsAsync(applicationUser);
 
             // Act & Assert
@@ -241,7 +241,7 @@ namespace TodoApp.Infrastructure.Tests.Services
                 () => _userService.GetUserByIdentityIdAsync(identityUserId));
 
             Assert.Equal("User not found", exception.Message);
-            _mockApplicationUserRepository.Verify(x => x.GetByIdAsync(identityUserId), Times.Once);
+            _mockApplicationUserRepository.Verify(x => x.GetByIdWithDomainUserAsync(identityUserId), Times.Once);
         }
 
         [Fact]
@@ -272,9 +272,9 @@ namespace TodoApp.Infrastructure.Tests.Services
             // Assert
             Assert.NotNull(result);
             Assert.Equal(2, result.Count);
-            Assert.Equal(users[0].Id, result[0].Id);
+            Assert.Equal(users[0].Id, result[0].IdentityId);
             Assert.Equal(users[0].DisplayName, result[0].Name);
-            Assert.Equal(users[1].Id, result[1].Id);
+            Assert.Equal(users[1].Id, result[1].IdentityId);
             Assert.Equal(users[1].DisplayName, result[1].Name);
 
             _mockUserRepository.Verify(x => x.SearchByNameAsync(searchTerm), Times.Once);

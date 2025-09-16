@@ -1,15 +1,15 @@
-﻿using TodoApp.Domain.Entities;
-using TodoApp.Infrastructure.Persistence.Auth;
+﻿using TodoApp.Infrastructure.Persistence.Auth;
 
 namespace TodoApp.Infrastructure.Persistence.Repositories.Interfaces
 {
     public interface IApplicationUserRepository
     {
-        System.Threading.Tasks.Task<ApplicationUser?> GetByIdAsync(Guid id);
-        System.Threading.Tasks.Task<ApplicationUser?> GetByEmailAsync(string email);
-        System.Threading.Tasks.Task<ApplicationUser?> GetByDomainUserIdAsync(Guid domainUserId);
-        System.Threading.Tasks.Task<ApplicationUser> AddAsync(ApplicationUser user);
-        System.Threading.Tasks.Task<ApplicationUser> UpdateAsync(ApplicationUser user);
-        System.Threading.Tasks.Task DeleteAsync(Guid id);
+        Task<ApplicationUser?> GetByIdAsync(Guid id);
+        Task<ApplicationUser?> GetByIdWithDomainUserAsync(Guid id);
+        Task<ApplicationUser?> GetByEmailAsync(string email);
+        Task<ApplicationUser?> GetByDomainUserIdAsync(Guid domainUserId);
+        Task<ApplicationUser> AddAsync(ApplicationUser user);
+        Task<ApplicationUser> UpdateAsync(ApplicationUser user);
+        Task DeleteAsync(Guid id);
     }
 }

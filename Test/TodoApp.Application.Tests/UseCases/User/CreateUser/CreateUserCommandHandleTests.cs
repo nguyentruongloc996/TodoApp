@@ -18,7 +18,7 @@ namespace TodoApp.Application.Tests.UseCases.User.CreateUser
             // Arrange
             var userDto = new UserDto { Email = "test@example.com", Name = "Test User" };
             var command = new CreateUserCommand(userDto);
-            var expected = new UserDto { Id = Guid.NewGuid(), Email = userDto.Email, Name = userDto.Name };
+            var expected = new UserDto { IdentityId = Guid.NewGuid(), Email = userDto.Email, Name = userDto.Name };
             var mockService = new Mock<IUserService>();
             mockService.Setup(s => s.CreateUserAsync(userDto)).ReturnsAsync(expected);
             var handler = new CreateUserCommandHandle(mockService.Object);

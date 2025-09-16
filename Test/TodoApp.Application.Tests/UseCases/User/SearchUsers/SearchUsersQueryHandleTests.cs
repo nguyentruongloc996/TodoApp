@@ -21,8 +21,8 @@ namespace TodoApp.Application.Tests.UseCases.User.SearchUsers
             var query = new SearchUsersQuery(searchTerm);
             var expected = new List<UserDto> 
             { 
-                new UserDto { Id = Guid.NewGuid(), Email = "test1@example.com", Name = "Test User 1" },
-                new UserDto { Id = Guid.NewGuid(), Email = "test2@example.com", Name = "Test User 2" }
+                new UserDto { IdentityId = Guid.NewGuid(), Email = "test1@example.com", Name = "Test User 1" },
+                new UserDto { IdentityId = Guid.NewGuid(), Email = "test2@example.com", Name = "Test User 2" }
             };
             var mockService = new Mock<IUserService>();
             mockService.Setup(s => s.SearchUsersAsync(searchTerm)).ReturnsAsync(expected);

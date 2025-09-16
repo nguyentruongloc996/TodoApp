@@ -27,7 +27,7 @@ namespace TodoApp.Infrastructure.Services
 
             return new UserDto
             {
-                Id = createdUser.Id,
+                IdentityId = createdUser.Id,
                 Name = createdUser.DisplayName
             };
         }
@@ -45,7 +45,7 @@ namespace TodoApp.Infrastructure.Services
 
             return new UserDto
             {
-                Id = updatedUser.Id,
+                IdentityId = updatedUser.Id,
                 Name = updatedUser.DisplayName
             };
         }
@@ -59,7 +59,7 @@ namespace TodoApp.Infrastructure.Services
 
             return new UserDto
             {
-                Id = user.Id,
+                IdentityId = user.Id,
                 Name = user.DisplayName
             };
         }
@@ -70,7 +70,7 @@ namespace TodoApp.Infrastructure.Services
             
             return users.Select(user => new UserDto
             {
-                Id = user.Id,
+                IdentityId = user.Id,
                 Name = user.DisplayName
             }).ToList();
         }
@@ -89,14 +89,20 @@ namespace TodoApp.Infrastructure.Services
         // Update methods to work with the new relationship
         public async Task<UserDto> GetUserByIdentityIdAsync(Guid identityUserId)
         {
-            var user = await _unitOfWork.DomainUsers.GetByIdAsync(identityUserId);
+            var identityUser = await _unitOfWork.ApplicationUsers.GetByIdWithDomainUserAsync(identityUserId);
+            if (identityUser == null)
+            {
+                throw new ArgumentException("Identity user not found");
+            }
+
+            var user = identityUser.DomainUser;
             
             if (user == null)
                 throw new ArgumentException("Domain user not found");
 
             return new UserDto
             {
-                Id = user.Id,
+                IdentityId = user.Id,
                 Name = user.DisplayName
             };
         }
