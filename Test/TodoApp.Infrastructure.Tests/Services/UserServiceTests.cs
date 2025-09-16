@@ -215,7 +215,7 @@ namespace TodoApp.Infrastructure.Tests.Services
             var exception = await Assert.ThrowsAsync<ArgumentException>(
                 () => _userService.GetUserByIdentityIdAsync(identityUserId));
 
-            Assert.Equal("User not found", exception.Message);
+            Assert.Equal("Identity user not found", exception.Message);
             _mockApplicationUserRepository.Verify(x => x.GetByIdWithDomainUserAsync(identityUserId), Times.Once);
         }
 
@@ -240,7 +240,7 @@ namespace TodoApp.Infrastructure.Tests.Services
             var exception = await Assert.ThrowsAsync<ArgumentException>(
                 () => _userService.GetUserByIdentityIdAsync(identityUserId));
 
-            Assert.Equal("User not found", exception.Message);
+            Assert.Equal("Domain user not found", exception.Message);
             _mockApplicationUserRepository.Verify(x => x.GetByIdWithDomainUserAsync(identityUserId), Times.Once);
         }
 
