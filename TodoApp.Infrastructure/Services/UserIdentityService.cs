@@ -176,7 +176,7 @@ namespace TodoApp.Infrastructure.Services
                 throw new ArgumentException("User not found");
 
             // Generate refresh token using Identity's token provider
-            return await _userManager.GenerateUserTokenAsync(user, "RefreshTokenProvider", "RefreshToken");
+            return await _userManager.GenerateUserTokenAsync(user, TokenOptions.DefaultProvider, "RefreshToken");
         }
 
         public async Task<bool> ValidateRefreshTokenAsync(Guid userId, string refreshToken)
@@ -185,7 +185,7 @@ namespace TodoApp.Infrastructure.Services
             if (user == null) return false;
 
             // Validate refresh token using Identity's token provider
-            return await _userManager.VerifyUserTokenAsync(user, "RefreshTokenProvider", "RefreshToken", refreshToken);
+            return await _userManager.VerifyUserTokenAsync(user, TokenOptions.DefaultProvider, "RefreshToken", refreshToken);
         }
     }
 }

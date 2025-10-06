@@ -12,7 +12,7 @@ using TodoApp.Infrastructure.Persistence;
 namespace TodoApp.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251006142325_AddSeedData")]
+    [Migration("20251006142915_AddSeedData")]
     partial class AddSeedData
     {
         /// <inheritdoc />
@@ -395,7 +395,7 @@ namespace TodoApp.Infrastructure.Migrations
                         {
                             Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "911134a3-2a55-46b1-b98c-b324c09a4fe9",
+                            ConcurrencyStamp = "static-concurrency-stamp-1",
                             DomainUserId = new Guid("11111111-1111-1111-1111-111111111111"),
                             Email = "test1@example.com",
                             EmailConfirmed = true,
@@ -404,6 +404,7 @@ namespace TodoApp.Infrastructure.Migrations
                             NormalizedUserName = "TEST USER 1",
                             PasswordHash = "AQAAAAIAAYagAAAAEBx8l2zY9dY8K+nJvQWg3ZnYq+4L5m9jX2pZ8nV7wQ3f0t1R5s6u9pA2bC3d4E5f6G7h8I9j",
                             PhoneNumberConfirmed = false,
+                            SecurityStamp = "static-security-stamp-1",
                             TwoFactorEnabled = false,
                             UserName = "Test User 1"
                         },
@@ -411,7 +412,7 @@ namespace TodoApp.Infrastructure.Migrations
                         {
                             Id = new Guid("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "079a9f26-5998-4724-8fb4-1be5521c1060",
+                            ConcurrencyStamp = "static-concurrency-stamp-2",
                             DomainUserId = new Guid("22222222-2222-2222-2222-222222222222"),
                             Email = "test2@example.com",
                             EmailConfirmed = true,
@@ -420,6 +421,7 @@ namespace TodoApp.Infrastructure.Migrations
                             NormalizedUserName = "TEST USER 2",
                             PasswordHash = "AQAAAAIAAYagAAAAECy9m3aZ0eZ9L+oKwRXh4aoZr+5M6n0kY3qA9oW8xR4g1u2S6t7v0qB3cD4e5F6g7H8i9J0k",
                             PhoneNumberConfirmed = false,
+                            SecurityStamp = "static-security-stamp-2",
                             TwoFactorEnabled = false,
                             UserName = "Test User 2"
                         });

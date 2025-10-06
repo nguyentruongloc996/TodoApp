@@ -36,9 +36,6 @@ namespace TodoApp.Infrastructure.Services
             };
             var identityUserId = await _userIdentityService.CreateUserAsync(email.Value, command.Request.Password, user);
 
-            await _unitOfWork.DomainUsers.AddAsync(user);
-            await _unitOfWork.SaveChangesAsync();
-
             return new RegisterRequestDto
             {
                 Email = email.Value,

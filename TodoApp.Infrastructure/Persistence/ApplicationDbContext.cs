@@ -59,7 +59,7 @@ namespace TodoApp.Infrastructure.Persistence
 
             modelBuilder.Entity<User>().HasData(testUser1, testUser2);
 
-            // Seed Identity Users with static password hashes
+            // Seed Identity Users with STATIC ConcurrencyStamp
             var identityUser1 = new ApplicationUser
             {
                 Id = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
@@ -69,8 +69,9 @@ namespace TodoApp.Infrastructure.Persistence
                 NormalizedEmail = "TEST1@EXAMPLE.COM",
                 EmailConfirmed = true,
                 DomainUserId = testUser1.Id,
-                // Static pre-computed hash for "PasswordUser1!"
-                PasswordHash = "AQAAAAIAAYagAAAAEBx8l2zY9dY8K+nJvQWg3ZnYq+4L5m9jX2pZ8nV7wQ3f0t1R5s6u9pA2bC3d4E5f6G7h8I9j"
+                PasswordHash = "AQAAAAIAAYagAAAAEBx8l2zY9dY8K+nJvQWg3ZnYq+4L5m9jX2pZ8nV7wQ3f0t1R5s6u9pA2bC3d4E5f6G7h8I9j",
+                ConcurrencyStamp = "static-concurrency-stamp-1", // Add this static value
+                SecurityStamp = "static-security-stamp-1" // Also set SecurityStamp to static value
             };
 
             var identityUser2 = new ApplicationUser
@@ -82,8 +83,9 @@ namespace TodoApp.Infrastructure.Persistence
                 NormalizedEmail = "TEST2@EXAMPLE.COM",
                 EmailConfirmed = true,
                 DomainUserId = testUser2.Id,
-                // Static pre-computed hash for "PasswordUser2!"
-                PasswordHash = "AQAAAAIAAYagAAAAECy9m3aZ0eZ9L+oKwRXh4aoZr+5M6n0kY3qA9oW8xR4g1u2S6t7v0qB3cD4e5F6g7H8i9J0k"
+                PasswordHash = "AQAAAAIAAYagAAAAECy9m3aZ0eZ9L+oKwRXh4aoZr+5M6n0kY3qA9oW8xR4g1u2S6t7v0qB3cD4e5F6g7H8i9J0k",
+                ConcurrencyStamp = "static-concurrency-stamp-2", // Add this static value
+                SecurityStamp = "static-security-stamp-2" // Also set SecurityStamp to static value
             };
 
             modelBuilder.Entity<ApplicationUser>().HasData(identityUser1, identityUser2);
