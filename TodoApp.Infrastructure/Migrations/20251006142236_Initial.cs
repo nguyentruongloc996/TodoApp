@@ -4,58 +4,14 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
-
 namespace TodoApp.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class AddIdentityConfigAndUpdateTablesRelationship : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Tasks_Users_UserId",
-                table: "Tasks");
-
-            migrationBuilder.DropPrimaryKey(
-                name: "PK_Users",
-                table: "Users");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Users_Email",
-                table: "Users");
-
-            migrationBuilder.DropColumn(
-                name: "MemberIds",
-                table: "Groups");
-
-            migrationBuilder.DropColumn(
-                name: "TaskIds",
-                table: "Groups");
-
-            migrationBuilder.DropColumn(
-                name: "Email",
-                table: "Users");
-
-            migrationBuilder.DropColumn(
-                name: "GroupIds",
-                table: "Users");
-
-            migrationBuilder.RenameTable(
-                name: "Users",
-                newName: "DomainUsers");
-
-            migrationBuilder.RenameColumn(
-                name: "Name",
-                table: "DomainUsers",
-                newName: "DisplayName");
-
-            migrationBuilder.AddPrimaryKey(
-                name: "PK_DomainUsers",
-                table: "DomainUsers",
-                column: "Id");
-
             migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
@@ -68,6 +24,51 @@ namespace TodoApp.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetRoles", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DomainUsers",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    DisplayName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DomainUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Groups",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Groups", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetRoleClaims",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    RoleId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ClaimType = table.Column<string>(type: "text", nullable: true),
+                    ClaimValue = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetRoleClaims", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AspNetRoleClaims_AspNetRoles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "AspNetRoles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -103,48 +104,55 @@ namespace TodoApp.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "GroupUser",
+                name: "GroupMembers",
                 columns: table => new
                 {
-                    GroupsId = table.Column<Guid>(type: "uuid", nullable: false),
-                    MembersId = table.Column<Guid>(type: "uuid", nullable: false)
+                    GroupId = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GroupUser", x => new { x.GroupsId, x.MembersId });
+                    table.PrimaryKey("PK_GroupMembers", x => new { x.GroupId, x.UserId });
                     table.ForeignKey(
-                        name: "FK_GroupUser_DomainUsers_MembersId",
-                        column: x => x.MembersId,
+                        name: "FK_GroupMembers_DomainUsers_UserId",
+                        column: x => x.UserId,
                         principalTable: "DomainUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_GroupUser_Groups_GroupsId",
-                        column: x => x.GroupsId,
+                        name: "FK_GroupMembers_Groups_GroupId",
+                        column: x => x.GroupId,
                         principalTable: "Groups",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "AspNetRoleClaims",
+                name: "Tasks",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    RoleId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ClaimType = table.Column<string>(type: "text", nullable: true),
-                    ClaimValue = table.Column<string>(type: "text", nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Description = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
+                    DueDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    Status = table.Column<string>(type: "text", nullable: false),
+                    GroupId = table.Column<Guid>(type: "uuid", nullable: true),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AspNetRoleClaims", x => x.Id);
+                    table.PrimaryKey("PK_Tasks", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_AspNetRoleClaims_AspNetRoles_RoleId",
-                        column: x => x.RoleId,
-                        principalTable: "AspNetRoles",
+                        name: "FK_Tasks_DomainUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "DomainUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Tasks_Groups_GroupId",
+                        column: x => x.GroupId,
+                        principalTable: "Groups",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -232,45 +240,24 @@ namespace TodoApp.Infrastructure.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.InsertData(
-                table: "DomainUsers",
-                columns: new[] { "Id", "DisplayName" },
-                values: new object[,]
+            migrationBuilder.CreateTable(
+                name: "SubTasks",
+                columns: table => new
                 {
-                    { new Guid("11111111-1111-1111-1111-111111111111"), "Test User 1" },
-                    { new Guid("22222222-2222-2222-2222-222222222222"), "Test User 2" }
-                });
-
-            migrationBuilder.InsertData(
-                table: "Groups",
-                columns: new[] { "Id", "Name" },
-                values: new object[] { new Guid("33333333-3333-3333-3333-333333333333"), "Test Group" });
-
-            migrationBuilder.InsertData(
-                table: "AspNetUsers",
-                columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "DomainUserId", "Email", "EmailConfirmed", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "TwoFactorEnabled", "UserName" },
-                values: new object[,]
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    Status = table.Column<string>(type: "text", nullable: false),
+                    ParentTaskId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
                 {
-                    { new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), 0, "e2d2dcd3-eddd-40a0-8d1c-84076a3b6ec1", new Guid("11111111-1111-1111-1111-111111111111"), "test1@example.com", true, false, null, "TEST1@EXAMPLE.COM", "TEST USER 1", "AQAAAAIAAYagAAAAEBx8l2zY9dY8K+nJvQWg3ZnYq+4L5m9jX2pZ8nV7wQ3f0t1R5s6u9pA2bC3d4E5f6G7h8I9j", null, false, null, false, "Test User 1" },
-                    { new Guid("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"), 0, "7391f209-803b-4cee-8638-b49cc70a7509", new Guid("22222222-2222-2222-2222-222222222222"), "test2@example.com", true, false, null, "TEST2@EXAMPLE.COM", "TEST USER 2", "AQAAAAIAAYagAAAAECy9m3aZ0eZ9L+oKwRXh4aoZr+5M6n0kY3qA9oW8xR4g1u2S6t7v0qB3cD4e5F6g7H8i9J0k", null, false, null, false, "Test User 2" }
-                });
-
-            migrationBuilder.InsertData(
-                table: "Tasks",
-                columns: new[] { "Id", "Description", "DueDate", "GroupId", "Status", "UserId" },
-                values: new object[,]
-                {
-                    { new Guid("44444444-4444-4444-4444-444444444444"), "Complete project documentation", new DateTime(2024, 12, 31, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("33333333-3333-3333-3333-333333333333"), "Pending", new Guid("11111111-1111-1111-1111-111111111111") },
-                    { new Guid("55555555-5555-5555-5555-555555555555"), "Review code changes", new DateTime(2024, 12, 27, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "Pending", new Guid("22222222-2222-2222-2222-222222222222") }
-                });
-
-            migrationBuilder.InsertData(
-                table: "SubTasks",
-                columns: new[] { "Id", "Description", "ParentTaskId", "Status" },
-                values: new object[,]
-                {
-                    { new Guid("66666666-6666-6666-6666-666666666666"), "Write API documentation", new Guid("44444444-4444-4444-4444-444444444444"), "Pending" },
-                    { new Guid("77777777-7777-7777-7777-777777777777"), "Create user guide", new Guid("44444444-4444-4444-4444-444444444444"), "Completed" }
+                    table.PrimaryKey("PK_SubTasks", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SubTasks_Tasks_ParentTaskId",
+                        column: x => x.ParentTaskId,
+                        principalTable: "Tasks",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -317,26 +304,44 @@ namespace TodoApp.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_GroupUser_MembersId",
-                table: "GroupUser",
-                column: "MembersId");
+                name: "IX_GroupMembers_UserId",
+                table: "GroupMembers",
+                column: "UserId");
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_Tasks_DomainUsers_UserId",
+            migrationBuilder.CreateIndex(
+                name: "IX_SubTasks_ParentTaskId",
+                table: "SubTasks",
+                column: "ParentTaskId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SubTasks_Status",
+                table: "SubTasks",
+                column: "Status");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tasks_DueDate",
                 table: "Tasks",
-                column: "UserId",
-                principalTable: "DomainUsers",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                column: "DueDate");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tasks_GroupId",
+                table: "Tasks",
+                column: "GroupId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tasks_Status",
+                table: "Tasks",
+                column: "Status");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tasks_UserId",
+                table: "Tasks",
+                column: "UserId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Tasks_DomainUsers_UserId",
-                table: "Tasks");
-
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
@@ -353,7 +358,10 @@ namespace TodoApp.Infrastructure.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "GroupUser");
+                name: "GroupMembers");
+
+            migrationBuilder.DropTable(
+                name: "SubTasks");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
@@ -361,98 +369,14 @@ namespace TodoApp.Infrastructure.Migrations
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
 
-            migrationBuilder.DropPrimaryKey(
-                name: "PK_DomainUsers",
-                table: "DomainUsers");
+            migrationBuilder.DropTable(
+                name: "Tasks");
 
-            migrationBuilder.DeleteData(
-                table: "SubTasks",
-                keyColumn: "Id",
-                keyValue: new Guid("66666666-6666-6666-6666-666666666666"));
+            migrationBuilder.DropTable(
+                name: "DomainUsers");
 
-            migrationBuilder.DeleteData(
-                table: "SubTasks",
-                keyColumn: "Id",
-                keyValue: new Guid("77777777-7777-7777-7777-777777777777"));
-
-            migrationBuilder.DeleteData(
-                table: "Tasks",
-                keyColumn: "Id",
-                keyValue: new Guid("55555555-5555-5555-5555-555555555555"));
-
-            migrationBuilder.DeleteData(
-                table: "DomainUsers",
-                keyColumn: "Id",
-                keyValue: new Guid("22222222-2222-2222-2222-222222222222"));
-
-            migrationBuilder.DeleteData(
-                table: "Tasks",
-                keyColumn: "Id",
-                keyValue: new Guid("44444444-4444-4444-4444-444444444444"));
-
-            migrationBuilder.DeleteData(
-                table: "DomainUsers",
-                keyColumn: "Id",
-                keyValue: new Guid("11111111-1111-1111-1111-111111111111"));
-
-            migrationBuilder.DeleteData(
-                table: "Groups",
-                keyColumn: "Id",
-                keyValue: new Guid("33333333-3333-3333-3333-333333333333"));
-
-            migrationBuilder.RenameTable(
-                name: "DomainUsers",
-                newName: "Users");
-
-            migrationBuilder.RenameColumn(
-                name: "DisplayName",
-                table: "Users",
-                newName: "Name");
-
-            migrationBuilder.AddColumn<string>(
-                name: "MemberIds",
-                table: "Groups",
-                type: "text",
-                nullable: true);
-
-            migrationBuilder.AddColumn<string>(
-                name: "TaskIds",
-                table: "Groups",
-                type: "text",
-                nullable: true);
-
-            migrationBuilder.AddColumn<string>(
-                name: "Email",
-                table: "Users",
-                type: "character varying(255)",
-                maxLength: 255,
-                nullable: false,
-                defaultValue: "");
-
-            migrationBuilder.AddColumn<string>(
-                name: "GroupIds",
-                table: "Users",
-                type: "text",
-                nullable: true);
-
-            migrationBuilder.AddPrimaryKey(
-                name: "PK_Users",
-                table: "Users",
-                column: "Id");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Users_Email",
-                table: "Users",
-                column: "Email",
-                unique: true);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Tasks_Users_UserId",
-                table: "Tasks",
-                column: "UserId",
-                principalTable: "Users",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+            migrationBuilder.DropTable(
+                name: "Groups");
         }
     }
 }

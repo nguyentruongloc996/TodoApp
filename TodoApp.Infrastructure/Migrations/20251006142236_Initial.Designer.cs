@@ -12,8 +12,8 @@ using TodoApp.Infrastructure.Persistence;
 namespace TodoApp.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251006005732_AddIdentityConfigAndUpdateTablesRelationship")]
-    partial class AddIdentityConfigAndUpdateTablesRelationship
+    [Migration("20251006142236_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,19 +25,19 @@ namespace TodoApp.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("GroupUser", b =>
+            modelBuilder.Entity("GroupMembers", b =>
                 {
-                    b.Property<Guid>("GroupsId")
+                    b.Property<Guid>("GroupId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("MembersId")
+                    b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("GroupsId", "MembersId");
+                    b.HasKey("GroupId", "UserId");
 
-                    b.HasIndex("MembersId");
+                    b.HasIndex("UserId");
 
-                    b.ToTable("GroupUser");
+                    b.ToTable("GroupMembers");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
@@ -184,13 +184,6 @@ namespace TodoApp.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Groups");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("33333333-3333-3333-3333-333333333333"),
-                            Name = "Test Group"
-                        });
                 });
 
             modelBuilder.Entity("TodoApp.Domain.Entities.SubTask", b =>
@@ -218,22 +211,6 @@ namespace TodoApp.Infrastructure.Migrations
                     b.HasIndex("Status");
 
                     b.ToTable("SubTasks");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("66666666-6666-6666-6666-666666666666"),
-                            Description = "Write API documentation",
-                            ParentTaskId = new Guid("44444444-4444-4444-4444-444444444444"),
-                            Status = "Pending"
-                        },
-                        new
-                        {
-                            Id = new Guid("77777777-7777-7777-7777-777777777777"),
-                            Description = "Create user guide",
-                            ParentTaskId = new Guid("44444444-4444-4444-4444-444444444444"),
-                            Status = "Completed"
-                        });
                 });
 
             modelBuilder.Entity("TodoApp.Domain.Entities.Task", b =>
@@ -271,25 +248,6 @@ namespace TodoApp.Infrastructure.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Tasks");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("44444444-4444-4444-4444-444444444444"),
-                            Description = "Complete project documentation",
-                            DueDate = new DateTime(2024, 12, 31, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            GroupId = new Guid("33333333-3333-3333-3333-333333333333"),
-                            Status = "Pending",
-                            UserId = new Guid("11111111-1111-1111-1111-111111111111")
-                        },
-                        new
-                        {
-                            Id = new Guid("55555555-5555-5555-5555-555555555555"),
-                            Description = "Review code changes",
-                            DueDate = new DateTime(2024, 12, 27, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Status = "Pending",
-                            UserId = new Guid("22222222-2222-2222-2222-222222222222")
-                        });
                 });
 
             modelBuilder.Entity("TodoApp.Domain.Entities.User", b =>
@@ -306,18 +264,6 @@ namespace TodoApp.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("DomainUsers");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("11111111-1111-1111-1111-111111111111"),
-                            DisplayName = "Test User 1"
-                        },
-                        new
-                        {
-                            Id = new Guid("22222222-2222-2222-2222-222222222222"),
-                            DisplayName = "Test User 2"
-                        });
                 });
 
             modelBuilder.Entity("TodoApp.Infrastructure.Persistence.Auth.ApplicationUser", b =>
@@ -389,53 +335,19 @@ namespace TodoApp.Infrastructure.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "e2d2dcd3-eddd-40a0-8d1c-84076a3b6ec1",
-                            DomainUserId = new Guid("11111111-1111-1111-1111-111111111111"),
-                            Email = "test1@example.com",
-                            EmailConfirmed = true,
-                            LockoutEnabled = false,
-                            NormalizedEmail = "TEST1@EXAMPLE.COM",
-                            NormalizedUserName = "TEST USER 1",
-                            PasswordHash = "AQAAAAIAAYagAAAAEBx8l2zY9dY8K+nJvQWg3ZnYq+4L5m9jX2pZ8nV7wQ3f0t1R5s6u9pA2bC3d4E5f6G7h8I9j",
-                            PhoneNumberConfirmed = false,
-                            TwoFactorEnabled = false,
-                            UserName = "Test User 1"
-                        },
-                        new
-                        {
-                            Id = new Guid("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "7391f209-803b-4cee-8638-b49cc70a7509",
-                            DomainUserId = new Guid("22222222-2222-2222-2222-222222222222"),
-                            Email = "test2@example.com",
-                            EmailConfirmed = true,
-                            LockoutEnabled = false,
-                            NormalizedEmail = "TEST2@EXAMPLE.COM",
-                            NormalizedUserName = "TEST USER 2",
-                            PasswordHash = "AQAAAAIAAYagAAAAECy9m3aZ0eZ9L+oKwRXh4aoZr+5M6n0kY3qA9oW8xR4g1u2S6t7v0qB3cD4e5F6g7H8i9J0k",
-                            PhoneNumberConfirmed = false,
-                            TwoFactorEnabled = false,
-                            UserName = "Test User 2"
-                        });
                 });
 
-            modelBuilder.Entity("GroupUser", b =>
+            modelBuilder.Entity("GroupMembers", b =>
                 {
                     b.HasOne("TodoApp.Domain.Entities.Group", null)
                         .WithMany()
-                        .HasForeignKey("GroupsId")
+                        .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("TodoApp.Domain.Entities.User", null)
                         .WithMany()
-                        .HasForeignKey("MembersId")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

@@ -35,7 +35,7 @@ namespace TodoApp.Infrastructure.Persistence
             modelBuilder.ApplyConfiguration(new GroupConfiguration());
             modelBuilder.ApplyConfiguration(new SubTaskConfiguration());
 
-            // Only seed data if explicitly requested
+            //// Only seed data if explicitly requested
             if (_seedData)
             {
                 SeedData(modelBuilder);
@@ -102,7 +102,7 @@ namespace TodoApp.Infrastructure.Persistence
             {
                 Id = Guid.Parse("44444444-4444-4444-4444-444444444444"),
                 Description = "Complete project documentation",
-                DueDate = new DateTime(2024, 12, 31), // Static date instead of DateTime.Now.AddDays(7)
+                DueDate = new DateTime(2024, 12, 31, 0, 0,0, DateTimeKind.Utc), // Static date instead of DateTime.Now.AddDays(7)
                 Status = TodoApp.Domain.Enums.TaskStatus.Pending,
                 UserId = testUser1.Id,
                 GroupId = testGroup.Id
@@ -112,7 +112,7 @@ namespace TodoApp.Infrastructure.Persistence
             {
                 Id = Guid.Parse("55555555-5555-5555-5555-555555555555"),
                 Description = "Review code changes",
-                DueDate = new DateTime(2024, 12, 27), // Static date instead of DateTime.Now.AddDays(3)
+                DueDate = new DateTime(2024, 12, 31, 0, 0, 0, DateTimeKind.Utc), // Static date instead of DateTime.Now.AddDays(3)
                 Status = TodoApp.Domain.Enums.TaskStatus.Pending,
                 UserId = testUser2.Id,
                 GroupId = null

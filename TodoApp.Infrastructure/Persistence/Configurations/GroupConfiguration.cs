@@ -15,10 +15,19 @@ namespace TodoApp.Infrastructure.Persistence.Configurations
                 .IsRequired()
                 .HasMaxLength(100);
 
+            // Configure Many-to-Many relationship with Users
+            builder.HasMany(g => g.Members)
+                .WithMany(u => u.Groups)
+                .UsingEntity<Dictionary<string, object>>(
+                    "GroupMembers",
+                    j => j.HasOne<User>().WithMany().HasForeignKey("UserId"),
+                    j => j.HasOne<Group>().WithMany().HasForeignKey("GroupId"));
+
+            // Configure One-to-Many relationship with Tasks
             builder.HasMany(g => g.Tasks)
                 .WithOne(t => t.Group)
                 .HasForeignKey(t => t.GroupId)
                 .OnDelete(DeleteBehavior.SetNull);
         }
     }
-} 
+}

@@ -17,6 +17,12 @@ namespace TodoApp.Infrastructure.Persistence.Configurations
             builder.Property(u => u.DisplayName)
                 .IsRequired()
                 .HasMaxLength(100);
+
+            // Configure relationship with Tasks
+            builder.HasMany<Domain.Entities.Task>()
+                .WithOne(t => t.User)
+                .HasForeignKey(t => t.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
-} 
+}
