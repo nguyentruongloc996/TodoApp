@@ -16,12 +16,17 @@ namespace TodoApp.Infrastructure.Services
 
         public async System.Threading.Tasks.Task<GroupDto> CreateGroupAsync(CreateGroupDto createGroupDto)
         {
+            var user = await _unitOfWork.DomainUsers.GetByIdAsync(createGroupDto.CreatedBy); 
+            // Ensure the user exists
+            if (user == null)
+                throw new ArgumentException("User not found");
+
             var group = new Group
             {
                 Id = Guid.NewGuid(),
                 Name = createGroupDto.Name,
-                MemberIds = new List<Guid> { createGroupDto.CreatedBy },
-                TaskIds = new List<Guid>()
+                Members = new List<User> { user },
+                Tasks = new List<Domain.Entities.Task>()
             };
 
             var createdGroup = await _unitOfWork.Groups.AddAsync(group);
@@ -31,8 +36,8 @@ namespace TodoApp.Infrastructure.Services
             {
                 Id = createdGroup.Id,
                 Name = createdGroup.Name,
-                MemberIds = createdGroup.MemberIds,
-                TaskIds = createdGroup.TaskIds
+                MemberIds = createdGroup.Members.Select(member => member.Id).ToList(),
+                TaskIds = createdGroup.Members.Select(member => member.Id).ToList()
             };
         }
 
@@ -42,9 +47,28 @@ namespace TodoApp.Infrastructure.Services
             if (group == null)
                 throw new ArgumentException("Group not found");
 
+            ICollection<User> members = new List<User>();
+            foreach (var memberId in updateGroupDto.MemberIds ?? new List<Guid>())
+            {
+                var user = await _unitOfWork.DomainUsers.GetByIdAsync(memberId);
+                if (user == null)
+                    throw new ArgumentException($"User with ID {memberId} not found");
+
+                members.Add(user);
+            }
+
+            ICollection<Domain.Entities.Task> tasks = new List<Domain.Entities.Task>();
+            foreach (var taskId in updateGroupDto.TaskIds ?? new List<Guid>())
+            {
+                var task = await _unitOfWork.Tasks.GetByIdAsync(taskId);
+                if (task == null)
+                    throw new ArgumentException($"Task with ID {taskId} not found");
+                tasks.Add(task);
+            }
+
             group.Name = updateGroupDto.Name;
-            group.MemberIds = updateGroupDto.MemberIds ?? group.MemberIds;
-            group.TaskIds = updateGroupDto.TaskIds ?? group.TaskIds;
+            group.Members = members;
+            group.Tasks = tasks;
 
             var updatedGroup = await _unitOfWork.Groups.UpdateAsync(group);
             await _unitOfWork.SaveChangesAsync();
@@ -53,8 +77,8 @@ namespace TodoApp.Infrastructure.Services
             {
                 Id = updatedGroup.Id,
                 Name = updatedGroup.Name,
-                MemberIds = updatedGroup.MemberIds,
-                TaskIds = updatedGroup.TaskIds
+                MemberIds = updatedGroup.Members.Select(member => member.Id).ToList(),
+                TaskIds = updatedGroup.Tasks.Select(task => task.Id).ToList()
             };
         }
 
@@ -68,8 +92,8 @@ namespace TodoApp.Infrastructure.Services
             {
                 Id = group.Id,
                 Name = group.Name,
-                MemberIds = group.MemberIds,
-                TaskIds = group.TaskIds
+                MemberIds = group.Members.Select(member => member.Id).ToList(),
+                TaskIds = group.Members.Select(member => member.Id).ToList()    
             };
         }
 
@@ -81,8 +105,8 @@ namespace TodoApp.Infrastructure.Services
             {
                 Id = group.Id,
                 Name = group.Name,
-                MemberIds = group.MemberIds,
-                TaskIds = group.TaskIds
+                MemberIds = group.Members.Select(member => member.Id).ToList(),
+                TaskIds = group.Members.Select(member => member.Id).ToList()
             }).ToList();
         }
 
@@ -103,9 +127,13 @@ namespace TodoApp.Infrastructure.Services
             if (group == null)
                 return false;
 
-            if (!group.MemberIds.Contains(memberId))
+            if (!group.Members.Any(m => m.Id == memberId))
             {
-                group.MemberIds.Add(memberId);
+                var user = await _unitOfWork.DomainUsers.GetByIdAsync(memberId);
+                if (user == null)
+                    throw new ArgumentException("User not found");
+
+                group.Members.Add(user);
                 await _unitOfWork.Groups.UpdateAsync(group);
                 await _unitOfWork.SaveChangesAsync();
             }
@@ -119,9 +147,10 @@ namespace TodoApp.Infrastructure.Services
             if (group == null)
                 return false;
 
-            if (group.MemberIds.Contains(memberId))
+            var memberToRemove = group.Members.FirstOrDefault(m => m.Id == memberId);
+            if (memberToRemove != null)
             {
-                group.MemberIds.Remove(memberId);
+                group.Members.Remove(memberToRemove);
                 await _unitOfWork.Groups.UpdateAsync(group);
                 await _unitOfWork.SaveChangesAsync();
             }

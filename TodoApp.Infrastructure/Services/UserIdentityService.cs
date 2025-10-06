@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -17,11 +18,11 @@ namespace TodoApp.Infrastructure.Services
 
         public UserIdentityService(UserManager<ApplicationUser> userManager,
                                    RoleManager<IdentityRole<Guid>> roleManager,
-                                   JwtSettings jwtSettings)
+                                   IOptions<JwtSettings> jwtSettings)
         {
             _userManager = userManager;
             _roleManager = roleManager;
-            _jwtSettings = jwtSettings;
+            _jwtSettings = jwtSettings.Value;
         }
 
         public async System.Threading.Tasks.Task AddToRoleAsync(Guid userId, string role)

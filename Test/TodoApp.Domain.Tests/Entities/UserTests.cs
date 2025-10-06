@@ -13,19 +13,22 @@ namespace TodoApp.Domain.Tests.Entities
         {
             // Arrange
             var name = "Test User";
-            var groupIds = new List<Guid> { Guid.NewGuid() };
+            var groups = new List<Group>
+            {
+                new Group { Id = Guid.NewGuid(), Name = "Test Group 1" }
+            };
 
             // Act
             var user = new User
             {
                 Id = Guid.NewGuid(),
                 DisplayName = name,
-                GroupIds = groupIds
+                Groups = groups
             };
 
             // Assert
             Assert.Equal(name, user.DisplayName);
-            Assert.Equal(groupIds, user.GroupIds);
+            Assert.Equal(groups, user.Groups);
         }
     }
-} 
+}

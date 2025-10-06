@@ -4,6 +4,6 @@ public class Group
 {
     public Guid Id { get; set; }
     public required string Name { get; set; }
-    public List<Guid> MemberIds { get; set; } = new();
-    public List<Guid> TaskIds { get; set; } = new();
+    public ICollection<User> Members { get; set; } = new List<User>();
+    public ICollection<Task> Tasks { get; set; } = new List<Task>();
 } 

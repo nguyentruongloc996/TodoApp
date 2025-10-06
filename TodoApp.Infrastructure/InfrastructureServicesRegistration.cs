@@ -22,6 +22,7 @@ namespace TodoApp.Infrastructure
         {
             services.AddDataProtection();
 
+            services.AddScoped<IApplicationUserRepository, ApplicationUserRepository>();
             services.AddScoped<ITaskRepository, TaskRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IGroupRepository, GroupRepository>();
@@ -32,6 +33,7 @@ namespace TodoApp.Infrastructure
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IGroupService, GroupService>();
+            services.AddScoped<IUserIdentityService, UserIdentityService>();
             services.AddScoped<ICacheService, RedisCacheService>();
 
             // Add Entity Framework

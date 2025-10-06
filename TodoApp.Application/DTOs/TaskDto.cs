@@ -7,7 +7,7 @@ namespace TodoApp.Application.DTOs
     public class TaskDto
     {
         public Guid Id { get; set; }
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
         public DateTime? DueDate { get; set; }
         public Reminder? Reminder { get; set; }
         public RepeatPattern? RepeatPattern { get; set; }

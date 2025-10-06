@@ -14,28 +14,11 @@ namespace TodoApp.Infrastructure.Persistence.Configurations
             builder.Property(g => g.Name)
                 .IsRequired()
                 .HasMaxLength(100);
-                
-            builder.Property(g => g.MemberIds)
-                .HasConversion(
-                    memberIds => string.Join(',', memberIds),
-                    value => value.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                        .Select(Guid.Parse)
-                        .ToList())
-                .Metadata.SetValueComparer(new ValueComparer<List<Guid>>(
-                    (c1, c2) => c1.SequenceEqual(c2),
-                    c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-                    c => c.ToList()));
-                
-            builder.Property(g => g.TaskIds)
-                .HasConversion(
-                    taskIds => string.Join(',', taskIds),
-                    value => value.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                        .Select(Guid.Parse)
-                        .ToList())
-                .Metadata.SetValueComparer(new ValueComparer<List<Guid>>(
-                    (c1, c2) => c1.SequenceEqual(c2),
-                    c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-                    c => c.ToList()));
+
+            builder.HasMany(g => g.Tasks)
+                .WithOne(t => t.Group)
+                .HasForeignKey(t => t.GroupId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 } 

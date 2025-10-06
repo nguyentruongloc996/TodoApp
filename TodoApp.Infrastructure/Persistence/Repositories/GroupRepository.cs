@@ -26,7 +26,7 @@ namespace TodoApp.Infrastructure.Persistence.Repositories
         public async System.Threading.Tasks.Task<IEnumerable<Group>> GetByMemberIdAsync(Guid memberId)
         {
             return await _context.Groups
-                .Where(g => g.MemberIds.Contains(memberId))
+                .Where(g => g.Members.Any(mem => mem.Id == memberId))
                 .ToListAsync();
         }
 
@@ -62,7 +62,7 @@ namespace TodoApp.Infrastructure.Persistence.Repositories
         public async System.Threading.Tasks.Task<bool> IsMemberAsync(Guid groupId, Guid memberId)
         {
             var group = await _context.Groups.FindAsync(groupId);
-            return group?.MemberIds.Contains(memberId) ?? false;
+            return group?.Members.Any(member => member.Id == memberId) ?? false;
         }
     }
 } 

@@ -5,5 +5,5 @@ public class User
 {
     public Guid Id { get; set; }
     public required string DisplayName { get; set; }
-    public List<Guid> GroupIds { get; set; } = new();
+    public ICollection<Group> Groups { get; set; } = new List<Group>();
 } 

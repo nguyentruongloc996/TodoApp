@@ -22,7 +22,7 @@ namespace TodoApp.Infrastructure.Persistence.Configurations
                 .IsRequired();
                 
             // Relationships
-            builder.HasOne<Domain.Entities.Task>()
+            builder.HasOne(t => t.ParentTask)
                 .WithMany(t => t.SubTasks)
                 .HasForeignKey(st => st.ParentTaskId)
                 .OnDelete(DeleteBehavior.Cascade);

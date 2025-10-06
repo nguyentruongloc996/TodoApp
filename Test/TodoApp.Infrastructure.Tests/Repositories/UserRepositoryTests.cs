@@ -187,31 +187,37 @@ namespace TodoApp.Infrastructure.Tests.Repositories
             var user = new User
             {
                 Id = Guid.NewGuid(),
-                DisplayName = "Test User",
-                GroupIds = new List<Guid>()
+                DisplayName = "Test User"
             };
             await repository.AddAsync(user);
 
             // Update user group memberships
-            var groupId1 = Guid.NewGuid();
-            var groupId2 = Guid.NewGuid();
-            user.GroupIds.Add(groupId1);
-            user.GroupIds.Add(groupId2);
+            var group1 = new Group() { 
+                Id = Guid.NewGuid(),
+                Name = "Group 1"
+            };
+            var group2 = new Group()
+            {
+                Id = Guid.NewGuid(),
+                Name = "Group 2"
+            };
+            user.Groups.Add(group1);
+            user.Groups.Add(group2);
 
             // Act
             var result = await repository.UpdateAsync(user);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(2, result.GroupIds.Count);
-            Assert.Contains(groupId1, result.GroupIds);
-            Assert.Contains(groupId2, result.GroupIds);
+            Assert.Equal(2, result.Groups.Count);
+            Assert.Contains(group1, result.Groups);
+            Assert.Contains(group2, result.Groups);
 
             // Verify in database
             var userInDb = await repository.GetByIdAsync(user.Id);
-            Assert.Equal(2, userInDb!.GroupIds.Count);
-            Assert.Contains(groupId1, userInDb.GroupIds);
-            Assert.Contains(groupId2, userInDb.GroupIds);
+            Assert.Equal(2, userInDb!.Groups.Count);
+            Assert.Contains(group1, result.Groups);
+            Assert.Contains(group2, result.Groups);
         }
 
         [Fact]

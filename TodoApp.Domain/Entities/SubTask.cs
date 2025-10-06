@@ -8,4 +8,5 @@ public class SubTask
     public string Description { get; set; }
     public TaskStatus Status { get; set; }
     public Guid ParentTaskId { get; set; }
+    public Task? ParentTask { get; set; }
 } 

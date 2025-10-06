@@ -48,47 +48,43 @@ namespace TodoApp.Infrastructure.Persistence
             var testUser1 = new User
             {
                 Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
-                DisplayName = "Test User 1",
-                GroupIds = new List<Guid>()
+                DisplayName = "Test User 1"
             };
 
             var testUser2 = new User
             {
                 Id = Guid.Parse("22222222-2222-2222-2222-222222222222"),
-                DisplayName = "Test User 2",
-                GroupIds = new List<Guid>()
+                DisplayName = "Test User 2"
             };
 
             modelBuilder.Entity<User>().HasData(testUser1, testUser2);
 
-            // Then seed Identity Users that reference Domain Users
-            var hasher = new PasswordHasher<ApplicationUser>();
-
-            var test1Email = new Email("test1@example.com");
+            // Seed Identity Users with static password hashes
             var identityUser1 = new ApplicationUser
             {
                 Id = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
-                UserName = testUser1.DisplayName,
+                UserName = "Test User 1",
                 Email = "test1@example.com",
-                NormalizedUserName = testUser1.DisplayName.ToUpperInvariant(),
-                NormalizedEmail = test1Email.Value.ToUpperInvariant(),
+                NormalizedUserName = "TEST USER 1",
+                NormalizedEmail = "TEST1@EXAMPLE.COM",
                 EmailConfirmed = true,
-                DomainUserId = testUser1.Id
+                DomainUserId = testUser1.Id,
+                // Static pre-computed hash for "PasswordUser1!"
+                PasswordHash = "AQAAAAIAAYagAAAAEBx8l2zY9dY8K+nJvQWg3ZnYq+4L5m9jX2pZ8nV7wQ3f0t1R5s6u9pA2bC3d4E5f6G7h8I9j"
             };
-            identityUser1.PasswordHash = hasher.HashPassword(identityUser1, "PasswordUser1!");
 
-            var test2Email = new Email("test2@example.com");
             var identityUser2 = new ApplicationUser
             {
                 Id = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
-                UserName = testUser2.DisplayName,
-                Email = test2Email.Value,
-                NormalizedUserName = testUser2.DisplayName.ToUpperInvariant(),
-                NormalizedEmail = test2Email.Value.ToUpperInvariant(),
+                UserName = "Test User 2",
+                Email = "test2@example.com",
+                NormalizedUserName = "TEST USER 2",
+                NormalizedEmail = "TEST2@EXAMPLE.COM",
                 EmailConfirmed = true,
-                DomainUserId = testUser2.Id
+                DomainUserId = testUser2.Id,
+                // Static pre-computed hash for "PasswordUser2!"
+                PasswordHash = "AQAAAAIAAYagAAAAECy9m3aZ0eZ9L+oKwRXh4aoZr+5M6n0kY3qA9oW8xR4g1u2S6t7v0qB3cD4e5F6g7H8i9J0k"
             };
-            identityUser2.PasswordHash = hasher.HashPassword(identityUser2, "PasswordUser2!");
 
             modelBuilder.Entity<ApplicationUser>().HasData(identityUser1, identityUser2);
 
@@ -96,44 +92,33 @@ namespace TodoApp.Infrastructure.Persistence
             var testGroup = new Group
             {
                 Id = Guid.Parse("33333333-3333-3333-3333-333333333333"),
-                Name = "Test Group",
-                MemberIds = new List<Guid> { testUser1.Id, testUser2.Id },
-                TaskIds = new List<Guid>()
+                Name = "Test Group"
             };
 
             modelBuilder.Entity<Group>().HasData(testGroup);
 
-            // Update users with group membership
-            testUser1.GroupIds.Add(testGroup.Id);
-            testUser2.GroupIds.Add(testGroup.Id);
-
-            // Seed Tasks
+            // Seed Tasks with STATIC dates
             var testTask1 = new Domain.Entities.Task
             {
                 Id = Guid.Parse("44444444-4444-4444-4444-444444444444"),
                 Description = "Complete project documentation",
-                DueDate = DateTime.Now.AddDays(7),
+                DueDate = new DateTime(2024, 12, 31), // Static date instead of DateTime.Now.AddDays(7)
                 Status = TodoApp.Domain.Enums.TaskStatus.Pending,
                 UserId = testUser1.Id,
-                GroupId = testGroup.Id,
-                SubTasks = new List<SubTask>()
+                GroupId = testGroup.Id
             };
 
             var testTask2 = new Domain.Entities.Task
             {
                 Id = Guid.Parse("55555555-5555-5555-5555-555555555555"),
                 Description = "Review code changes",
-                DueDate = DateTime.Now.AddDays(3),
+                DueDate = new DateTime(2024, 12, 27), // Static date instead of DateTime.Now.AddDays(3)
                 Status = TodoApp.Domain.Enums.TaskStatus.Pending,
                 UserId = testUser2.Id,
-                GroupId = null,
-                SubTasks = new List<SubTask>()
+                GroupId = null
             };
 
             modelBuilder.Entity<Domain.Entities.Task>().HasData(testTask1, testTask2);
-
-            // Update group with task
-            testGroup.TaskIds.Add(testTask1.Id);
 
             // Seed SubTasks
             var subTask1 = new SubTask

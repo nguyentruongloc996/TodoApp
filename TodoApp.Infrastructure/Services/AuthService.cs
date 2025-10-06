@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -16,11 +17,11 @@ namespace TodoApp.Infrastructure.Services
         private readonly IUserIdentityService _userIdentityService;
         private readonly JwtSettings _jwtSettings;
 
-        public AuthService(IUnitOfWork unitOfWork, IUserIdentityService userIdentityService, JwtSettings jwtSettings)
+        public AuthService(IUnitOfWork unitOfWork, IUserIdentityService userIdentityService, IOptions<JwtSettings> jwtSettings)
         {
             _unitOfWork = unitOfWork;
             _userIdentityService = userIdentityService;
-            _jwtSettings = jwtSettings;
+            _jwtSettings = jwtSettings.Value;
         }
 
         public async System.Threading.Tasks.Task<RegisterRequestDto> RegisterAsync(RegisterCommand command)

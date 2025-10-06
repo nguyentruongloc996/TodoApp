@@ -32,12 +32,12 @@ namespace TodoApp.Infrastructure.Persistence.Configurations
                 .IsRequired();
                 
             // Relationships
-            builder.HasOne<User>()
+            builder.HasOne(t => t.User)
                 .WithMany()
                 .HasForeignKey(t => t.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
                 
-            builder.HasOne<Group>()
+            builder.HasOne(t => t.Group)
                 .WithMany()
                 .HasForeignKey(t => t.GroupId)
                 .OnDelete(DeleteBehavior.SetNull);

@@ -2,6 +2,7 @@ using System;
 using TodoApp.Domain.Entities;
 using TodoApp.Domain.Enums;
 using Xunit;
+using TaskStatus = TodoApp.Domain.Enums.TaskStatus;
 
 namespace TodoApp.Domain.Tests.Entities
 {
@@ -11,8 +12,8 @@ namespace TodoApp.Domain.Tests.Entities
         public void CreateSubTask_WithValidData_ShouldSetProperties()
         {
             // Arrange
-            var description = "Subtask description";
-            var status = TodoApp.Domain.Enums.TaskStatus.Pending;
+            var description = "Test SubTask";
+            var status = TaskStatus.Pending;
             var parentTaskId = Guid.NewGuid();
 
             // Act
@@ -30,4 +31,4 @@ namespace TodoApp.Domain.Tests.Entities
             Assert.Equal(parentTaskId, subTask.ParentTaskId);
         }
     }
-} 
+}
