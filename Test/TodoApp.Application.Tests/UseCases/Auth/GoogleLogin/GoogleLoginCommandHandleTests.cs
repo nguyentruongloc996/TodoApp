@@ -22,8 +22,7 @@ namespace TodoApp.Application.Tests.UseCases.Auth.GoogleLogin
             { 
                 Token = "jwt-token", 
                 RefreshToken = "refresh-token", 
-                ExpiresAt = DateTime.UtcNow.AddHours(1),
-                User = new UserDto { IdentityId = Guid.NewGuid(), Email = "test@example.com", Name = "Test User" }
+                ExpiresAt = DateTime.UtcNow.AddHours(1)
             };
             var mockService = new Mock<IAuthService>();
             mockService.Setup(s => s.GoogleLoginAsync(request)).ReturnsAsync(expected);

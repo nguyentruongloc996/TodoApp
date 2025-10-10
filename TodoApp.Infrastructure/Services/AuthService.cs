@@ -1,5 +1,5 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using TodoApp.Application.Abstraction.Services;
@@ -7,6 +7,7 @@ using TodoApp.Application.DTOs;
 using TodoApp.Application.UseCases.Auth.Register;
 using TodoApp.Domain.Entities;
 using TodoApp.Infrastructure.Persistence.Auth;
+using TodoApp.Infrastructure.Persistence.Auth.Interfaces;
 using TodoApp.Infrastructure.Persistence.Interfaces;
 
 namespace TodoApp.Infrastructure.Services
@@ -16,17 +17,20 @@ namespace TodoApp.Infrastructure.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserIdentityService _userIdentityService;
         private readonly JwtSettings _jwtSettings;
+        private readonly ITokenProvider _tokenProvider;
 
-        public AuthService(IUnitOfWork unitOfWork, IUserIdentityService userIdentityService, IOptions<JwtSettings> jwtSettings)
+        public AuthService(IUnitOfWork unitOfWork, IUserIdentityService userIdentityService, IOptions<JwtSettings> jwtSettings, ITokenProvider tokenProvider)
         {
             _unitOfWork = unitOfWork;
             _userIdentityService = userIdentityService;
             _jwtSettings = jwtSettings.Value;
+            _tokenProvider = tokenProvider;
         }
 
         public async System.Threading.Tasks.Task<RegisterRequestDto> RegisterAsync(RegisterCommand command)
         {
-            // Validate email format
+            // Validate email format.
+            // This should be changed to use a more robust validation in production.
             var email = new Domain.ValueObjects.Email(command.Request.Email);
 
             var user = new User
@@ -53,31 +57,20 @@ namespace TodoApp.Infrastructure.Services
                 throw new UnauthorizedAccessException(string.IsNullOrEmpty(authResult.ErrorMessage) ? string.Empty : authResult.ErrorMessage);
 
             var identityUser = await _unitOfWork.ApplicationUsers.GetByIdWithDomainUserAsync(authResult.IdentityUserId.Value);
-            // Get domain user by IdentityUserId
-            var user = identityUser?.DomainUser;
-            if (user == null)
-            {
-                // Handle data inconsistency - user exists in Identity but not in domain
-                throw new InvalidOperationException("User data inconsistency detected");
-            }
 
             // Use Identity-based JWT token generation
-            var jwtToken = await _userIdentityService.GenerateJwtTokenAsync(authResult.IdentityUserId.Value);
-            var refreshToken = await _userIdentityService.GenerateRefreshTokenAsync(authResult.IdentityUserId.Value);
+            var jwtToken = await _tokenProvider.GenerateJwtToken(identityUser);
+            var refreshToken = _tokenProvider.GenerateRefreshToken();
+
+            refreshToken.UserId = identityUser.Id;
+            _unitOfWork.RefreshTokens.Add(refreshToken);
+            await _unitOfWork.SaveChangesAsync();
 
             return new LoginResponseDto
             {
                 Token = jwtToken,
-                RefreshToken = refreshToken,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes),
-                User = new UserDto
-                {
-                    IdentityId = identityUser.Id,
-                    UserId = user.Id,
-                    Email = identityUser.Email ?? string.Empty,
-                    Name = user.DisplayName,
-                    ProfilePicture = null
-                }
+                RefreshToken = refreshToken.Token,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes)
             };
         }
 
@@ -92,62 +85,43 @@ namespace TodoApp.Infrastructure.Services
             if (existingUser == null)
                 throw new InvalidOperationException("Identity user not found for domain user");
 
-            var jwtToken = await _userIdentityService.GenerateJwtTokenAsync(existingUser.Id);
-            var refreshToken = await _userIdentityService.GenerateRefreshTokenAsync(existingUser.Id);
+            var jwtToken = await _tokenProvider.GenerateJwtToken(existingUser);
+            var refreshToken = _tokenProvider.GenerateRefreshToken();
+            refreshToken.UserId = existingUser.Id;
 
             return new LoginResponseDto
             {
                 Token = jwtToken,
-                RefreshToken = refreshToken,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes),
-                User = new UserDto
-                {
-                    IdentityId = existingUser.Id,
-                    UserId = existingUser.DomainUser.Id,
-                    Email = existingUser.Email ?? string.Empty,
-                    Name = existingUser.DomainUser.DisplayName,
-                    ProfilePicture = null
-                }
+                RefreshToken = refreshToken.Token,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes)
             };
         }
 
         public async System.Threading.Tasks.Task<LoginResponseDto> RefreshTokenAsync(RefreshTokenRequestDto request)
         {
-            // Extract user ID from the JWT token or implement a mapping mechanism
-            var userId = ExtractUserIdFromToken(request.RefreshToken);
-            
-            // Validate the refresh token using Identity
-            var isValid = await _userIdentityService.ValidateRefreshTokenAsync(userId, request.RefreshToken);
-            if (!isValid)
+            // Find the refresh token in the database
+            var refreshToken = await _unitOfWork.RefreshTokens.GetByTokenAsync(request.RefreshToken);
+            if (!_tokenProvider.IsRefreshTokenValid(refreshToken))
                 throw new UnauthorizedAccessException("Invalid or expired refresh token");
 
+            // Revoke the used refresh token
+            refreshToken.Revoked = DateTime.UtcNow;
+
+            var applicationUser = refreshToken.User;
+
             // Generate new tokens
-            var newJwtToken = await _userIdentityService.GenerateJwtTokenAsync(userId);
-            var newRefreshToken = await _userIdentityService.GenerateRefreshTokenAsync(userId);
+            var newJwtToken = await _tokenProvider.GenerateJwtToken(applicationUser);
+            var newRefreshToken = _tokenProvider.GenerateRefreshToken();
 
-            // Get user info
-            var identityUser = await _unitOfWork.ApplicationUsers.GetByIdWithDomainUserAsync(userId);
-
-            if (identityUser == null)
-                throw new InvalidOperationException("User not found");
-
-            var user = identityUser?.DomainUser;
-            if (user == null)
-                throw new InvalidOperationException("User not found");
+            newRefreshToken.UserId = applicationUser.Id;
+            _unitOfWork.RefreshTokens.Add(newRefreshToken);
+            await _unitOfWork.SaveChangesAsync();
 
             return new LoginResponseDto
             {
                 Token = newJwtToken,
-                RefreshToken = newRefreshToken,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes),
-                User = new UserDto
-                {
-                    IdentityId = identityUser.Id,
-                    UserId = user.Id,
-                    Email = identityUser.Email,
-                    Name = user.DisplayName,
-                    ProfilePicture = null
-                }
+                RefreshToken = newRefreshToken.Token,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes)
             };
         }
 

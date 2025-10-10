@@ -9,6 +9,7 @@ using System.Text;
 using TodoApp.Application.Abstraction.Services;
 using TodoApp.Infrastructure.Persistence;
 using TodoApp.Infrastructure.Persistence.Auth;
+using TodoApp.Infrastructure.Persistence.Auth.Interfaces;
 using TodoApp.Infrastructure.Persistence.Interfaces;
 using TodoApp.Infrastructure.Persistence.Repositories;
 using TodoApp.Infrastructure.Persistence.Repositories.Interfaces;
@@ -74,6 +75,7 @@ namespace TodoApp.Infrastructure
                     ValidateIssuerSigningKey = true,
                 };
             });
+            services.AddScoped<ITokenProvider, TokenProvider>();
 
             // Add Redis Caching
             services.AddStackExchangeRedisCache(options =>

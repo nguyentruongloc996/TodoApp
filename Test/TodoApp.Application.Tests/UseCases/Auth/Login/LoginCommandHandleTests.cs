@@ -22,8 +22,7 @@ namespace TodoApp.Application.Tests.UseCases.Auth.Login
             { 
                 Token = "jwt-token", 
                 RefreshToken = "refresh-token", 
-                ExpiresAt = DateTime.UtcNow.AddHours(1),
-                User = new UserDto { IdentityId = Guid.NewGuid(), Email = request.Email, Name = "Test User" }
+                ExpiresAt = DateTime.UtcNow.AddHours(1)
             };
             var mockService = new Mock<IAuthService>();
             mockService.Setup(s => s.LoginAsync(request)).ReturnsAsync(expected);

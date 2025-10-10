@@ -9,6 +9,7 @@ namespace TodoApp.Infrastructure.Persistence.Interfaces
         IGroupRepository Groups { get; }
         ISubTaskRepository SubTasks { get; }
         IApplicationUserRepository ApplicationUsers { get; }
+        IRefreshTokenRepository RefreshTokens { get; }
 
         System.Threading.Tasks.Task<int> SaveChangesAsync();
         System.Threading.Tasks.Task BeginTransactionAsync();

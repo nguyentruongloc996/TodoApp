@@ -3,6 +3,7 @@ using TodoApp.Application.Abstraction.Messaging;
 using TodoApp.Application.DTOs;
 using TodoApp.Application.UseCases.Auth.GoogleLogin;
 using TodoApp.Application.UseCases.Auth.Login;
+using TodoApp.Application.UseCases.Auth.RefreshToken;
 using TodoApp.Application.UseCases.Auth.Register;
 using TodoApp.Application.UseCases.Task.CompleteTask;
 using TodoApp.Application.UseCases.Task.CreateTask;
@@ -21,6 +22,7 @@ namespace TodoApp.Application
             services.AddScoped<ICommandHandle<LoginCommand, LoginResponseDto>, LoginCommandHandle>();
             services.AddScoped<ICommandHandle<GoogleLoginCommand, LoginResponseDto>, GoogleLoginCommandHandle>();
             services.AddScoped<ICommandHandle<RegisterCommand, RegisterRequestDto>, RegisterCommandHandle>();
+            services.AddScoped<ICommandHandle<RefreshTokenCommand, LoginResponseDto>, RefreshTokenCommandHandle>();
 
             // Task Use Cases
             services.AddScoped<ICommandHandle<CreateTaskCommand, TaskDto>, CreateTaskCommandHandle>();

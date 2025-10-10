@@ -17,6 +17,7 @@ namespace TodoApp.Infrastructure.Persistence
         private IGroupRepository? _groupRepository;
         private ISubTaskRepository? _subTaskRepository;
         private IApplicationUserRepository? _applicationUserRepository;
+        private IRefreshTokenRepository? _refreshTokenRepository;
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -28,6 +29,7 @@ namespace TodoApp.Infrastructure.Persistence
         public IGroupRepository Groups => _groupRepository ??= new GroupRepository(_context);
         public ISubTaskRepository SubTasks => _subTaskRepository ??= new SubTaskRepository(_context);
         public IApplicationUserRepository ApplicationUsers => _applicationUserRepository ??= new ApplicationUserRepository(_context);
+        public IRefreshTokenRepository RefreshTokens => _refreshTokenRepository ??= new RefreshTokenRepository(_context);
 
         public async System.Threading.Tasks.Task<int> SaveChangesAsync()
         {

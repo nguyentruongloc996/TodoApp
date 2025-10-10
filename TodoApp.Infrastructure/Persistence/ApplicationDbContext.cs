@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using TodoApp.Domain.Entities;
-using TodoApp.Domain.ValueObjects;
 using TodoApp.Infrastructure.Persistence.Auth;
+using TodoApp.Infrastructure.Persistence.Auth.Models;
 using TodoApp.Infrastructure.Persistence.Configurations;
 
 namespace TodoApp.Infrastructure.Persistence
@@ -23,7 +23,7 @@ namespace TodoApp.Infrastructure.Persistence
         public DbSet<SubTask> SubTasks { get; set; }
         public DbSet<Group> Groups { get; set; }
         public DbSet<User> DomainUsers { get; set; }
-
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

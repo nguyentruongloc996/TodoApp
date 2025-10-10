@@ -201,6 +201,10 @@ namespace TodoApp.Infrastructure.Tests.Repositories
                 Id = Guid.NewGuid(),
                 Name = "Group 2"
             };
+            var groupRepo = new GroupRepository(context);
+            await groupRepo.AddAsync(group1);
+            await groupRepo.AddAsync(group2);
+
             user.Groups.Add(group1);
             user.Groups.Add(group2);
 

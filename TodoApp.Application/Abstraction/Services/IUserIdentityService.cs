@@ -18,10 +18,5 @@ namespace TodoApp.Application.Abstraction.Services
         Task<bool> CheckPasswordAsync(Guid userId, string password);
         System.Threading.Tasks.Task AddToRoleAsync(Guid userId, string role);
         Task<bool> IsInRoleAsync(Guid userId, string role);
-        
-        // New methods for JWT token generation using Identity
-        Task<string> GenerateJwtTokenAsync(Guid userId);
-        Task<string> GenerateRefreshTokenAsync(Guid userId);
-        Task<bool> ValidateRefreshTokenAsync(Guid userId, string refreshToken);
     }
 }

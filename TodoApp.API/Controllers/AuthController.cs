@@ -7,6 +7,7 @@ using TodoApp.Application.UseCases.Auth.Login;
 using TodoApp.Application.UseCases.Auth.GoogleLogin;
 using TodoApp.Application.UseCases.Auth.Register;
 using Microsoft.AspNetCore.Authorization;
+using TodoApp.Application.UseCases.Auth.RefreshToken;
 
 namespace TodoApp.API.Controllers
 {
@@ -17,15 +18,17 @@ namespace TodoApp.API.Controllers
         private readonly ICommandHandle<LoginCommand, LoginResponseDto> _loginCommandHandle;
         private readonly ICommandHandle<GoogleLoginCommand, LoginResponseDto> _googleLoginCommandHandle;
         private readonly ICommandHandle<RegisterCommand, RegisterRequestDto> _registerCommandHandle;
-
+        private readonly ICommandHandle<RefreshTokenCommand, LoginResponseDto> _refreshTokenCommandHandle;
         public AuthController(
             ICommandHandle<LoginCommand, LoginResponseDto> loginCommandHandle,
             ICommandHandle<GoogleLoginCommand, LoginResponseDto> googleLoginCommandHandle,
-            ICommandHandle<RegisterCommand, RegisterRequestDto> registerCommandHandle)
+            ICommandHandle<RegisterCommand, RegisterRequestDto> registerCommandHandle,
+            ICommandHandle<RefreshTokenCommand, LoginResponseDto> refreshTokenCommandHandle)
         {
             _loginCommandHandle = loginCommandHandle;
             _googleLoginCommandHandle = googleLoginCommandHandle;
             _registerCommandHandle = registerCommandHandle;
+            _refreshTokenCommandHandle = refreshTokenCommandHandle;
         }
 
         [HttpPost("login")]
@@ -56,7 +59,10 @@ namespace TodoApp.API.Controllers
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDto request, CancellationToken cancellationToken)
         {
             // TODO: Implement refresh token command
-            return Ok(new { message = "Refresh token endpoint - to be implemented" });
+            var command = new RefreshTokenCommand(request);
+            var result = await _refreshTokenCommandHandle.Handle(command, cancellationToken);
+
+            return Ok(result);
         }
     }
 } 
