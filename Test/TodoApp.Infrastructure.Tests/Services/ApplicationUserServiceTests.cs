@@ -10,12 +10,12 @@ namespace TodoApp.Infrastructure.Tests.Services
 {
     public class ApplicationUserServiceTests
     {
-        private readonly Mock<IUnitOfWork> _mockUnitOfWork;
+        private readonly Mock<IInfrastructureUnitOfWork> _mockUnitOfWork;
         private readonly Mock<IApplicationUserRepository> _mockApplicationUserRepository;
 
         public ApplicationUserServiceTests()
         {
-            _mockUnitOfWork = new Mock<IUnitOfWork>();
+            _mockUnitOfWork = new Mock<IInfrastructureUnitOfWork>();
             _mockApplicationUserRepository = new Mock<IApplicationUserRepository>();
             _mockUnitOfWork.Setup(x => x.ApplicationUsers).Returns(_mockApplicationUserRepository.Object);
         }

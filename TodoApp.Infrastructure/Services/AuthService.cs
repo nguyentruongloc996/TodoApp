@@ -2,24 +2,24 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using TodoApp.Application.Abstraction;
 using TodoApp.Application.Abstraction.Services;
 using TodoApp.Application.DTOs;
 using TodoApp.Application.UseCases.Auth.Register;
 using TodoApp.Domain.Entities;
 using TodoApp.Infrastructure.Persistence.Auth;
-using TodoApp.Infrastructure.Persistence.Auth.Interfaces;
 using TodoApp.Infrastructure.Persistence.Interfaces;
 
 namespace TodoApp.Infrastructure.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IInfrastructureUnitOfWork _unitOfWork;
         private readonly IUserIdentityService _userIdentityService;
         private readonly JwtSettings _jwtSettings;
         private readonly ITokenProvider _tokenProvider;
 
-        public AuthService(IUnitOfWork unitOfWork, IUserIdentityService userIdentityService, IOptions<JwtSettings> jwtSettings, ITokenProvider tokenProvider)
+        public AuthService(IInfrastructureUnitOfWork unitOfWork, IUserIdentityService userIdentityService, IOptions<JwtSettings> jwtSettings, ITokenProvider tokenProvider)
         {
             _unitOfWork = unitOfWork;
             _userIdentityService = userIdentityService;
@@ -107,7 +107,9 @@ namespace TodoApp.Infrastructure.Services
             // Revoke the used refresh token
             refreshToken.Revoked = DateTime.UtcNow;
 
-            var applicationUser = refreshToken.User;
+            var applicationUser = await _unitOfWork.ApplicationUsers.GetByIdAsync(refreshToken.UserId);
+            if (applicationUser == null)
+                throw new UnauthorizedAccessException("User not found for the provided refresh token");
 
             // Generate new tokens
             var newJwtToken = await _tokenProvider.GenerateJwtToken(applicationUser);

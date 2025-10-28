@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using TodoApp.Domain.Entities;
 using TodoApp.Infrastructure.Persistence.Auth;
-using TodoApp.Infrastructure.Persistence.Auth.Models;
 using TodoApp.Infrastructure.Persistence.Configurations;
 
 namespace TodoApp.Infrastructure.Persistence
@@ -34,6 +33,7 @@ namespace TodoApp.Infrastructure.Persistence
             modelBuilder.ApplyConfiguration(new ApplicationUserConfiguration());
             modelBuilder.ApplyConfiguration(new GroupConfiguration());
             modelBuilder.ApplyConfiguration(new SubTaskConfiguration());
+            modelBuilder.ApplyConfiguration(new RefreshTokenConfiguration());
 
             //// Only seed data if explicitly requested
             if (_seedData)

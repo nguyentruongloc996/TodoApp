@@ -1,9 +1,9 @@
 using TodoApp.Application.Abstraction.Services;
 using TodoApp.Application.DTOs;
 using TodoApp.Domain.Entities;
-using TodoApp.Infrastructure.Persistence.Interfaces;
+using TodoApp.Application.Abstraction;
 
-namespace TodoApp.Infrastructure.Services
+namespace TodoApp.Application.Services
 {
     public class GroupService : IGroupService
     {

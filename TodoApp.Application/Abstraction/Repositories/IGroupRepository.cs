@@ -1,6 +1,6 @@
 using TodoApp.Domain.Entities;
 
-namespace TodoApp.Infrastructure.Persistence.Repositories.Interfaces
+namespace TodoApp.Application.Abstraction.Repositories
 {
     public interface IGroupRepository
     {
@@ -13,4 +13,4 @@ namespace TodoApp.Infrastructure.Persistence.Repositories.Interfaces
         System.Threading.Tasks.Task<bool> ExistsAsync(Guid id);
         System.Threading.Tasks.Task<bool> IsMemberAsync(Guid groupId, Guid memberId);
     }
-} 
+}

@@ -1,6 +1,6 @@
 using TodoApp.Domain.Entities;
 
-namespace TodoApp.Infrastructure.Persistence.Repositories.Interfaces
+namespace TodoApp.Application.Abstraction.Repositories
 {
     public interface IUserRepository
     {

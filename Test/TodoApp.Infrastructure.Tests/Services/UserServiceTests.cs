@@ -3,22 +3,23 @@ using TodoApp.Application.DTOs;
 using TodoApp.Domain.Entities;
 using TodoApp.Infrastructure.Persistence.Interfaces;
 using TodoApp.Infrastructure.Persistence.Repositories.Interfaces;
-using TodoApp.Infrastructure.Services;
 using TodoApp.Infrastructure.Persistence.Auth;
 using Xunit;
+using TodoApp.Application.Abstraction.Repositories;
+using TodoApp.Application.Services;
 
 namespace TodoApp.Infrastructure.Tests.Services
 {
     public class UserServiceTests
     {
-        private readonly Mock<IUnitOfWork> _mockUnitOfWork;
+        private readonly Mock<IInfrastructureUnitOfWork> _mockUnitOfWork;
         private readonly Mock<IUserRepository> _mockUserRepository;
         private readonly Mock<IApplicationUserRepository> _mockApplicationUserRepository;
         private readonly UserService _userService;
 
         public UserServiceTests()
         {
-            _mockUnitOfWork = new Mock<IUnitOfWork>();
+            _mockUnitOfWork = new Mock<IInfrastructureUnitOfWork>();
             _mockUserRepository = new Mock<IUserRepository>();
             _mockApplicationUserRepository = new Mock<IApplicationUserRepository>();
             _mockUnitOfWork.Setup(x => x.DomainUsers).Returns(_mockUserRepository.Object);
@@ -167,81 +168,6 @@ namespace TodoApp.Infrastructure.Tests.Services
 
             Assert.Equal("User not found", exception.Message);
             _mockUserRepository.Verify(x => x.GetByIdAsync(userId), Times.Once);
-        }
-
-        [Fact]
-        public async System.Threading.Tasks.Task GetUserByIdentityIdAsync_ShouldReturnUserDto_WhenUserExists()
-        {
-            // Arrange
-            var identityUserId = Guid.NewGuid();
-            var domainUser = new User
-            {
-                Id = Guid.NewGuid(),
-                DisplayName = "Test User"
-            };
-
-            var applicationUser = new ApplicationUser
-            {
-                Id = identityUserId,
-                Email = "test@example.com",
-                UserName = "test@example.com",
-                DomainUserId = domainUser.Id,
-                DomainUser = domainUser
-            };
-
-            _mockApplicationUserRepository.Setup(x => x.GetByIdWithDomainUserAsync(identityUserId))
-                .ReturnsAsync(applicationUser);
-
-            // Act
-            var result = await _userService.GetUserByIdentityIdAsync(identityUserId);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(domainUser.Id, result.IdentityId);
-            Assert.Equal(domainUser.DisplayName, result.Name);
-
-            _mockApplicationUserRepository.Verify(x => x.GetByIdWithDomainUserAsync(identityUserId), Times.Once);
-        }
-
-        [Fact]
-        public async System.Threading.Tasks.Task GetUserByIdentityIdAsync_ShouldThrowArgumentException_WhenUserNotFound()
-        {
-            // Arrange
-            var identityUserId = Guid.NewGuid();
-            _mockApplicationUserRepository.Setup(x => x.GetByIdWithDomainUserAsync(identityUserId))
-                .ReturnsAsync((ApplicationUser?)null);
-
-            // Act & Assert
-            var exception = await Assert.ThrowsAsync<ArgumentException>(
-                () => _userService.GetUserByIdentityIdAsync(identityUserId));
-
-            Assert.Equal("Identity user not found", exception.Message);
-            _mockApplicationUserRepository.Verify(x => x.GetByIdWithDomainUserAsync(identityUserId), Times.Once);
-        }
-
-        [Fact]
-        public async System.Threading.Tasks.Task GetUserByIdentityIdAsync_ShouldThrowArgumentException_WhenDomainUserIsNull()
-        {
-            // Arrange
-            var identityUserId = Guid.NewGuid();
-            var applicationUser = new ApplicationUser
-            {
-                Id = identityUserId,
-                Email = "test@example.com",
-                UserName = "test@example.com",
-                DomainUserId = Guid.NewGuid(),
-                DomainUser = null! // Domain user is null
-            };
-
-            _mockApplicationUserRepository.Setup(x => x.GetByIdWithDomainUserAsync(identityUserId))
-                .ReturnsAsync(applicationUser);
-
-            // Act & Assert
-            var exception = await Assert.ThrowsAsync<ArgumentException>(
-                () => _userService.GetUserByIdentityIdAsync(identityUserId));
-
-            Assert.Equal("Domain user not found", exception.Message);
-            _mockApplicationUserRepository.Verify(x => x.GetByIdWithDomainUserAsync(identityUserId), Times.Once);
         }
 
         [Fact]

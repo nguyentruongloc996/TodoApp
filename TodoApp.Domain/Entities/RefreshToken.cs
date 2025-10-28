@@ -1,11 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace TodoApp.Infrastructure.Persistence.Auth.Models
+namespace TodoApp.Domain.Entities
 {
     public class RefreshToken
     {
@@ -19,6 +14,6 @@ namespace TodoApp.Infrastructure.Persistence.Auth.Models
 
         // Relation to Application User
         public Guid UserId { get; set; }
-        public ApplicationUser User { get; set; }
+        // Note: We'll reference ApplicationUser by interface or keep this as navigation property
     }
 }

@@ -1,10 +1,10 @@
 using TodoApp.Application.Abstraction.Services;
 using TodoApp.Application.DTOs;
+using TodoApp.Application.Abstraction;
 using TodoApp.Domain.Entities;
 using TodoApp.Domain.Enums;
-using TodoApp.Infrastructure.Persistence.Interfaces;
 
-namespace TodoApp.Infrastructure.Services
+namespace TodoApp.Application.Services
 {
     public class TaskService : ITaskService
     {
@@ -93,4 +93,4 @@ namespace TodoApp.Infrastructure.Services
             };
         }
     }
-} 
+}

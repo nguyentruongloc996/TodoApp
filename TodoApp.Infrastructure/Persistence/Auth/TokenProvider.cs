@@ -5,8 +5,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using TodoApp.Infrastructure.Persistence.Auth.Interfaces;
-using TodoApp.Infrastructure.Persistence.Auth.Models;
+using TodoApp.Application.Abstraction;
+using TodoApp.Domain.Entities;
 
 namespace TodoApp.Infrastructure.Persistence.Auth
 {
@@ -26,8 +26,13 @@ namespace TodoApp.Infrastructure.Persistence.Auth
             _jwtSettings = jwtSettings.Value;
         }
 
-        public async Task<string> GenerateJwtToken(ApplicationUser user)
+        public async Task<string> GenerateJwtToken(object userObj)
         {
+            if (userObj is not ApplicationUser user)
+            {
+                throw new ArgumentException("Invalid user type for JWT generation.");
+            }
+
             // Get all claims using Identity's built-in claim management
             var claims = await GetUserClaimsAsync(user);
 

@@ -1,9 +1,9 @@
 using TodoApp.Application.Abstraction.Services;
 using TodoApp.Application.DTOs;
 using TodoApp.Domain.Entities;
-using TodoApp.Infrastructure.Persistence.Interfaces;
+using TodoApp.Application.Abstraction;
 
-namespace TodoApp.Infrastructure.Services
+namespace TodoApp.Application.Services
 {
     public class UserService : IUserService
     {
@@ -84,27 +84,6 @@ namespace TodoApp.Infrastructure.Services
             await _unitOfWork.DomainUsers.DeleteAsync(userId);
             await _unitOfWork.SaveChangesAsync();
             return true;
-        }
-
-        // Update methods to work with the new relationship
-        public async Task<UserDto> GetUserByIdentityIdAsync(Guid identityUserId)
-        {
-            var identityUser = await _unitOfWork.ApplicationUsers.GetByIdWithDomainUserAsync(identityUserId);
-            if (identityUser == null)
-            {
-                throw new ArgumentException("Identity user not found");
-            }
-
-            var user = identityUser.DomainUser;
-            
-            if (user == null)
-                throw new ArgumentException("Domain user not found");
-
-            return new UserDto
-            {
-                IdentityId = user.Id,
-                Name = user.DisplayName
-            };
         }
     }
 }

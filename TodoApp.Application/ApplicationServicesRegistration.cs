@@ -1,6 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using TodoApp.Application.Abstraction.Messaging;
+using TodoApp.Application.Abstraction.Services;
 using TodoApp.Application.DTOs;
+using TodoApp.Application.Services;
 using TodoApp.Application.UseCases.Auth.GoogleLogin;
 using TodoApp.Application.UseCases.Auth.Login;
 using TodoApp.Application.UseCases.Auth.RefreshToken;
@@ -18,6 +20,11 @@ namespace TodoApp.Application
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
+            // Application Services (moved from Infrastructure)
+            services.AddScoped<ITaskService, TaskService>();
+            services.AddScoped<IGroupService, GroupService>();
+            services.AddScoped<IUserService, UserService>();
+
             // Auth Use Cases
             services.AddScoped<ICommandHandle<LoginCommand, LoginResponseDto>, LoginCommandHandle>();
             services.AddScoped<ICommandHandle<GoogleLoginCommand, LoginResponseDto>, GoogleLoginCommandHandle>();
@@ -37,4 +44,4 @@ namespace TodoApp.Application
             return services;
         }
     }
-} 
+}

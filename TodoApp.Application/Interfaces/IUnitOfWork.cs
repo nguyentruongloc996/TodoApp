@@ -1,6 +1,6 @@
-using TodoApp.Infrastructure.Persistence.Repositories.Interfaces;
+using TodoApp.Application.Abstraction.Repositories;
 
-namespace TodoApp.Infrastructure.Persistence.Interfaces
+namespace TodoApp.Application.Abstraction
 {
     public interface IUnitOfWork : IDisposable
     {
@@ -8,7 +8,6 @@ namespace TodoApp.Infrastructure.Persistence.Interfaces
         IUserRepository DomainUsers { get; }
         IGroupRepository Groups { get; }
         ISubTaskRepository SubTasks { get; }
-        IApplicationUserRepository ApplicationUsers { get; }
         IRefreshTokenRepository RefreshTokens { get; }
 
         System.Threading.Tasks.Task<int> SaveChangesAsync();
@@ -16,4 +15,4 @@ namespace TodoApp.Infrastructure.Persistence.Interfaces
         System.Threading.Tasks.Task CommitTransactionAsync();
         System.Threading.Tasks.Task RollbackTransactionAsync();
     }
-} 
+}

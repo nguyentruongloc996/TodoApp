@@ -2,11 +2,11 @@ using Microsoft.EntityFrameworkCore.Storage;
 using TodoApp.Infrastructure.Persistence.Interfaces;
 using TodoApp.Infrastructure.Persistence.Repositories.Interfaces;
 using TodoApp.Infrastructure.Persistence.Repositories;
-
+using TodoApp.Application.Abstraction.Repositories;
 
 namespace TodoApp.Infrastructure.Persistence
 {
-    public class UnitOfWork : IUnitOfWork
+    public class UnitOfWork : IInfrastructureUnitOfWork
     {
         private readonly ApplicationDbContext _context;
         private IDbContextTransaction? _transaction;
