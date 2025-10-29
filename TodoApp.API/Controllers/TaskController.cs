@@ -8,11 +8,13 @@ using TodoApp.Application.UseCases.Task.CreateTask;
 using TodoApp.Application.UseCases.Task.UpdateTask;
 using TodoApp.Application.UseCases.Task.CompleteTask;
 using TodoApp.Application.UseCases.Task.DeleteTask;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TodoApp.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class TaskController : ControllerBase
     {
         private readonly ICommandHandle<CreateTaskCommand, TaskDto> _createTaskCommandHandle;

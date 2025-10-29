@@ -65,6 +65,7 @@ namespace TodoApp.Infrastructure
                     ClockSkew = TimeSpan.Zero
                 };
             });
+            services.AddAuthorization();
 
             // Services
             services.AddScoped<IAuthService, AuthService>();

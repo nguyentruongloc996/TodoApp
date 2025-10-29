@@ -28,7 +28,37 @@ builder.Services.AddControllers(options =>
     options.Filters.Add<ValidationFilter>();
 });
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new() { Title = "TodoApp API", Version = "v1" });
+
+    // Add the "Bearer" definition
+    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Enter 'Bearer' [space] and then your valid JWT token.\n\nExample: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6...`"
+    });
+
+    // Make sure Swagger requires the token for protected endpoints
+    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
 
 // Add Application Services
 builder.Services.AddApplicationServices();
@@ -43,7 +73,10 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    //app.ApplyMigrations();
+
+    var serviceProvider = app.Services.CreateScope().ServiceProvider;
+    var context =  serviceProvider.GetRequiredService<ApplicationDbContext>();
+    context.Database.Migrate();
 }
 
 // Enable CORS - must be before UseRouting
@@ -51,10 +84,11 @@ app.UseCors("AllowFrontend");
 
 app.UseHttpsRedirection();
 app.UseMiddleware<ErrorHandlingMiddleware>();
+
+app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseRouting();
 app.MapControllers();
 
 app.Run();
