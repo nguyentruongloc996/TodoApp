@@ -22,6 +22,9 @@ namespace TodoApp.Infrastructure
         {
             services.AddDataProtection();
 
+            // Add HttpContextAccessor for CurrentUserService
+            services.AddHttpContextAccessor();
+
             // Database Configuration
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
@@ -89,6 +92,9 @@ namespace TodoApp.Infrastructure
 
             // Identity-dependent services (stay in Infrastructure)
             services.AddScoped<IUserIdentityService, UserIdentityService>();
+            
+            // Add CurrentUserService
+            services.AddScoped<ICurrentUserService, CurrentUserService>();
 
             // Caching
             services.AddStackExchangeRedisCache(options =>
