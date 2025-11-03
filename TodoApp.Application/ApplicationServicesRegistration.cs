@@ -10,6 +10,7 @@ using TodoApp.Application.UseCases.Auth.Register;
 using TodoApp.Application.UseCases.Task.CompleteTask;
 using TodoApp.Application.UseCases.Task.CreateTask;
 using TodoApp.Application.UseCases.Task.DeleteTask;
+using TodoApp.Application.UseCases.Task.GetUserTasks;
 using TodoApp.Application.UseCases.Task.UpdateTask;
 using TodoApp.Application.UseCases.User.CreateUser;
 using TodoApp.Application.UseCases.User.SearchUsers;
@@ -36,6 +37,7 @@ namespace TodoApp.Application
             services.AddScoped<ICommandHandle<UpdateTaskCommand, TaskDto>, UpdateTaskCommandHandle>();
             services.AddScoped<ICommandHandle<CompleteTaskCommand<TaskDto>, TaskDto>, CompleteTaskCommandHandle>();
             services.AddScoped<ICommandHandle<DeleteTaskCommand, bool>, DeleteTaskCommandHandle>();
+            services.AddScoped<IQueryHandle<GetUserTasksQuery, List<TaskDto>>, GetUserTasksQueryHandle>();
 
             // User Use Cases
             services.AddScoped<ICommandHandle<CreateUserCommand, UserDto>, CreateUserCommandHandle>();

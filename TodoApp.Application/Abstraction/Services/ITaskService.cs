@@ -10,6 +10,6 @@ namespace TodoApp.Application.Abstraction.Services
         Task<TaskDto> UpdateTaskAsync(UpdateTaskDto dto);
         Task<TaskDto> CompleteTaskAsync(Guid taskId);
         Task<bool> DeleteTaskAsync(Guid taskId);
-        // Other methods will be added later
+        Task<List<TaskDto>> GetTasksByMemberIdAsync(Guid userId);
     }
 } 

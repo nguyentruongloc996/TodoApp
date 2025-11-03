@@ -92,5 +92,11 @@ namespace TodoApp.Application.Services
                 GroupId = task.GroupId
             };
         }
+
+        public async Task<List<TaskDto>> GetTasksByMemberIdAsync(Guid userId)
+        {
+            var tasks = await _unitOfWork.Tasks.GetByUserIdAsync(userId);
+            return tasks.Select(MapToDto).ToList();
+        }
     }
 }

@@ -9,6 +9,7 @@ using TodoApp.Application.UseCases.Task.UpdateTask;
 using TodoApp.Application.UseCases.Task.CompleteTask;
 using TodoApp.Application.UseCases.Task.DeleteTask;
 using Microsoft.AspNetCore.Authorization;
+using TodoApp.Application.UseCases.Task.GetUserTasks;
 
 namespace TodoApp.API.Controllers
 {
@@ -21,17 +22,29 @@ namespace TodoApp.API.Controllers
         private readonly ICommandHandle<UpdateTaskCommand, TaskDto> _updateTaskCommandHandle;
         private readonly ICommandHandle<CompleteTaskCommand<TaskDto>, TaskDto> _completeTaskCommandHandle;
         private readonly ICommandHandle<DeleteTaskCommand, bool> _deleteTaskCommandHandle;
+        private readonly IQueryHandle<GetUserTasksQuery, List<TaskDto>> _getUserTasksQueryHandle;
 
         public TaskController(
             ICommandHandle<CreateTaskCommand, TaskDto> createTaskCommandHandle,
             ICommandHandle<UpdateTaskCommand, TaskDto> updateTaskCommandHandle,
             ICommandHandle<CompleteTaskCommand<TaskDto>, TaskDto> completeTaskCommandHandle,
-            ICommandHandle<DeleteTaskCommand, bool> deleteTaskCommandHandle)
+            ICommandHandle<DeleteTaskCommand, bool> deleteTaskCommandHandle,
+            IQueryHandle<GetUserTasksQuery, List<TaskDto>> getUserTasksQueryHandle)
         {
             _createTaskCommandHandle = createTaskCommandHandle;
             _updateTaskCommandHandle = updateTaskCommandHandle;
             _completeTaskCommandHandle = completeTaskCommandHandle;
             _deleteTaskCommandHandle = deleteTaskCommandHandle;
+            _getUserTasksQueryHandle = getUserTasksQueryHandle;
+        }
+
+        [HttpGet]
+        public IActionResult Get(CancellationToken cancellationToken)
+        {
+            var query = new GetUserTasksQuery();
+            var result = _getUserTasksQueryHandle.Handle(query, cancellationToken).Result;
+
+            return Ok(result);
         }
 
         [HttpPost]
