@@ -1,7 +1,7 @@
 ﻿using System.Security.Claims;
 using TodoApp.Domain.Entities;
 
-namespace TodoApp.Application.Abstraction.Services
+namespace TodoApp.Infrastructure.Abstraction.Services
 {
     public class AuthenticationResult
     {

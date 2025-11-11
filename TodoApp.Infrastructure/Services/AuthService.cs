@@ -1,12 +1,13 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using TodoApp.Application.Abstraction;
 using TodoApp.Application.Abstraction.Services;
+using TodoApp.Application.Common.Result;
 using TodoApp.Application.DTOs;
 using TodoApp.Application.UseCases.Auth.Register;
 using TodoApp.Domain.Entities;
+using TodoApp.Infrastructure.Abstraction.Services;
 using TodoApp.Infrastructure.Persistence.Auth;
 using TodoApp.Infrastructure.Persistence.Interfaces;
 
@@ -27,11 +28,17 @@ namespace TodoApp.Infrastructure.Services
             _tokenProvider = tokenProvider;
         }
 
-        public async System.Threading.Tasks.Task<RegisterRequestDto> RegisterAsync(RegisterCommand command)
+        public async Task<Result<RegisterRequestDto>> RegisterAsync(RegisterCommand command)
         {
             // Validate email format.
             // This should be changed to use a more robust validation in production.
             var email = new Domain.ValueObjects.Email(command.Request.Email);
+            if (email.Errors.Any())
+            {
+                return Error.Validation(
+                    "Auth.InvalidEmail",
+                    email.Errors.First());
+            }
 
             var user = new User
             {
@@ -48,13 +55,22 @@ namespace TodoApp.Infrastructure.Services
             };
         }
 
-        public async System.Threading.Tasks.Task<LoginResponseDto> LoginAsync(LoginRequestDto request)
+        public async System.Threading.Tasks.Task<Result<LoginResponseDto>> LoginAsync(LoginRequestDto request)
         {
             // Single authentication call that handles both user lookup and password verification
             var authResult = await _userIdentityService.AuthenticateAsync(request.Email, request.Password);
 
             if (!authResult.IsSuccess || !authResult.IdentityUserId.HasValue)
-                throw new UnauthorizedAccessException(string.IsNullOrEmpty(authResult.ErrorMessage) ? string.Empty : authResult.ErrorMessage);
+            {
+                if (string.IsNullOrEmpty(authResult.ErrorMessage))
+                {
+                    return DomainErrors.Auth.InvalidCredentials;
+                }
+
+                return Error.Unauthorized(
+                    "Auth.InvalidCredentials",
+                    string.IsNullOrEmpty(authResult.ErrorMessage) ? string.Empty : authResult.ErrorMessage);
+            }
 
             var identityUser = await _unitOfWork.ApplicationUsers.GetByIdWithDomainUserAsync(authResult.IdentityUserId.Value);
 
@@ -78,7 +94,7 @@ namespace TodoApp.Infrastructure.Services
         {
             // In a real implementation, you would validate the Google ID token here
             // For now, we'll create a mock user
-            
+
             var mockEmail = "google.user@example.com";
             var existingUser = await _unitOfWork.ApplicationUsers.GetByEmailAsync(mockEmail);
 
@@ -97,19 +113,19 @@ namespace TodoApp.Infrastructure.Services
             };
         }
 
-        public async System.Threading.Tasks.Task<LoginResponseDto> RefreshTokenAsync(RefreshTokenRequestDto request)
+        public async Task<Result<LoginResponseDto>> RefreshTokenAsync(RefreshTokenRequestDto request)
         {
             // Find the refresh token in the database
             var refreshToken = await _unitOfWork.RefreshTokens.GetByTokenAsync(request.RefreshToken);
             if (!_tokenProvider.IsRefreshTokenValid(refreshToken))
-                throw new UnauthorizedAccessException("Invalid or expired refresh token");
+                return DomainErrors.Auth.InvalidRefreshToken;
 
             // Revoke the used refresh token
             refreshToken.Revoked = DateTime.UtcNow;
 
             var applicationUser = await _unitOfWork.ApplicationUsers.GetByIdAsync(refreshToken.UserId);
             if (applicationUser == null)
-                throw new UnauthorizedAccessException("User not found for the provided refresh token");
+               return DomainErrors.User.NotFound;
 
             // Generate new tokens
             var newJwtToken = await _tokenProvider.GenerateJwtToken(applicationUser);
@@ -145,7 +161,7 @@ namespace TodoApp.Infrastructure.Services
             {
                 // Handle token parsing errors
             }
-            
+
             throw new UnauthorizedAccessException("Invalid token format");
         }
     }

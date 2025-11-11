@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using System.Threading;
-using System.Threading.Tasks;
+using TodoApp.API.Extensions;
 using TodoApp.Application.Abstraction.Messaging;
 using TodoApp.Application.DTOs;
 using TodoApp.Application.UseCases.Auth.Login;
@@ -8,6 +7,8 @@ using TodoApp.Application.UseCases.Auth.GoogleLogin;
 using TodoApp.Application.UseCases.Auth.Register;
 using Microsoft.AspNetCore.Authorization;
 using TodoApp.Application.UseCases.Auth.RefreshToken;
+using TodoApp.Application.Common.Result;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace TodoApp.API.Controllers
 {
@@ -16,15 +17,15 @@ namespace TodoApp.API.Controllers
     [AllowAnonymous]
     public class AuthController : ControllerBase
     {
-        private readonly ICommandHandle<LoginCommand, LoginResponseDto> _loginCommandHandle;
+        private readonly ICommandHandle<LoginCommand, Result<LoginResponseDto>> _loginCommandHandle;
         private readonly ICommandHandle<GoogleLoginCommand, LoginResponseDto> _googleLoginCommandHandle;
-        private readonly ICommandHandle<RegisterCommand, RegisterRequestDto> _registerCommandHandle;
-        private readonly ICommandHandle<RefreshTokenCommand, LoginResponseDto> _refreshTokenCommandHandle;
+        private readonly ICommandHandle<RegisterCommand, Result<RegisterRequestDto>> _registerCommandHandle;
+        private readonly ICommandHandle<RefreshTokenCommand, Result<LoginResponseDto>> _refreshTokenCommandHandle;
         public AuthController(
-            ICommandHandle<LoginCommand, LoginResponseDto> loginCommandHandle,
+            ICommandHandle<LoginCommand, Result<LoginResponseDto>> loginCommandHandle,
             ICommandHandle<GoogleLoginCommand, LoginResponseDto> googleLoginCommandHandle,
-            ICommandHandle<RegisterCommand, RegisterRequestDto> registerCommandHandle,
-            ICommandHandle<RefreshTokenCommand, LoginResponseDto> refreshTokenCommandHandle)
+            ICommandHandle<RegisterCommand, Result<RegisterRequestDto>> registerCommandHandle,
+            ICommandHandle<RefreshTokenCommand, Result<LoginResponseDto>> refreshTokenCommandHandle)
         {
             _loginCommandHandle = loginCommandHandle;
             _googleLoginCommandHandle = googleLoginCommandHandle;
@@ -37,7 +38,7 @@ namespace TodoApp.API.Controllers
         {
             var command = new LoginCommand(request);
             var result = await _loginCommandHandle.Handle(command, cancellationToken);
-            return Ok(result);
+            return this.FromResult(result);
         }
 
         [HttpPost("google-login")]
@@ -53,7 +54,7 @@ namespace TodoApp.API.Controllers
         {
             var command = new RegisterCommand(request);
             var result = await _registerCommandHandle.Handle(command, cancellationToken);
-            return Ok(result);
+            return result.IsSuccess ? Created(nameof(Register), result) : this.FromResult(result);
         }
 
         [HttpPost("refresh-token")]
@@ -63,7 +64,7 @@ namespace TodoApp.API.Controllers
             var command = new RefreshTokenCommand(request);
             var result = await _refreshTokenCommandHandle.Handle(command, cancellationToken);
 
-            return Ok(result);
+            return this.FromResult(result);
         }
     }
 } 

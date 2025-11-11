@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
-using TodoApp.Application.Abstraction.Services;
+using TodoApp.Infrastructure.Abstraction.Services;
 using TodoApp.Domain.Entities;
 using TodoApp.Infrastructure.Persistence.Auth;
 

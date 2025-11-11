@@ -12,6 +12,7 @@ using TodoApp.Infrastructure.Persistence;
 using TodoApp.Infrastructure.Persistence.Auth;
 using TodoApp.Infrastructure.Persistence.Interfaces;
 using TodoApp.Infrastructure.Persistence.Repositories;
+using TodoApp.Infrastructure.Abstraction.Services;
 using TodoApp.Infrastructure.Services;
 
 namespace TodoApp.Infrastructure

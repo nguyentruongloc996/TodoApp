@@ -1,3 +1,4 @@
+using TodoApp.Application.Common.Result;
 using TodoApp.Application.DTOs;
 using TodoApp.Application.UseCases.Auth.Register;
 
@@ -5,9 +6,9 @@ namespace TodoApp.Application.Abstraction.Services
 {
     public interface IAuthService
     {
-        Task<LoginResponseDto> LoginAsync(LoginRequestDto request);
+        Task<Result<LoginResponseDto>> LoginAsync(LoginRequestDto request);
         Task<LoginResponseDto> GoogleLoginAsync(GoogleAuthRequestDto request);
-        Task<LoginResponseDto> RefreshTokenAsync(RefreshTokenRequestDto request);
-        Task<RegisterRequestDto> RegisterAsync(RegisterCommand command);
+        Task<Result<LoginResponseDto>> RefreshTokenAsync(RefreshTokenRequestDto request);
+        Task<Result<RegisterRequestDto>> RegisterAsync(RegisterCommand command);
     }
 } 

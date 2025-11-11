@@ -5,13 +5,14 @@ namespace TodoApp.Domain.ValueObjects;
 public class Email
 {
     public string Value { get; }
+    public List<string> Errors { get; private set; } = new List<string>();
     public Email(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            throw new ArgumentException("Email cannot be empty.");
+            Errors.Add("Email cannot be empty.");
 
         if (!IsValid(value))
-            throw new ArgumentException("Invalid email format.");
+            Errors.Add("Invalid email format.");
 
         Value = value;
     }
