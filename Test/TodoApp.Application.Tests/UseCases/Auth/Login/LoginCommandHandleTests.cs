@@ -32,7 +32,9 @@ namespace TodoApp.Application.Tests.UseCases.Auth.Login
             var result = await handler.Handle(command, CancellationToken.None);
 
             // Assert
-            Assert.Equal(expected, result);
+            Assert.NotNull(result);
+            Assert.True(result.IsSuccess);
+            Assert.Equal(expected, result.Value);
             mockService.Verify(s => s.LoginAsync(request), Times.Once);
         }
     }

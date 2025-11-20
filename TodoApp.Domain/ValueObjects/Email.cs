@@ -4,15 +4,21 @@ namespace TodoApp.Domain.ValueObjects;
 
 public class Email
 {
-    public string Value { get; }
+    public string Value { get; } = string.Empty;
     public List<string> Errors { get; private set; } = new List<string>();
     public Email(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
+        {
             Errors.Add("Email cannot be empty.");
+            return;
+        }
 
         if (!IsValid(value))
+        {
             Errors.Add("Invalid email format.");
+            return;
+        }
 
         Value = value;
     }

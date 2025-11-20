@@ -40,19 +40,22 @@ namespace TodoApp.Domain.Tests.ValueObjects
         [InlineData("   ")]
         [InlineData("\t")]
         [InlineData("\n")]
-        public void CreateEmail_WithNullOrWhitespace_ShouldThrowArgumentException(string invalidEmail)
+        public void CreateEmail_WithNullOrWhitespace_ShouldHaveErrorValues(string invalidEmail)
         {
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => new Email(invalidEmail));
-            Assert.Equal("Email cannot be empty.", exception.Message);
+            var email = new Email(invalidEmail);
+
+            Assert.NotEmpty(email.Errors);
+            Assert.Equal("Email cannot be empty.", email.Errors.First());
         }
 
         [Fact]
-        public void CreateEmail_WithNull_ShouldThrowArgumentException()
+        public void CreateEmail_WithNull_ShouldHaveErrorValues()
         {
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => new Email(null!));
-            Assert.Equal("Email cannot be empty.", exception.Message);
+            var email = new Email(null!);
+            Assert.NotEmpty(email.Errors);
+            Assert.Equal("Email cannot be empty.", email.Errors.First());
         }
 
         [Theory]
@@ -69,11 +72,12 @@ namespace TodoApp.Domain.Tests.ValueObjects
         [InlineData("user@domain..com")]
         [InlineData(".user@domain.com")]
         [InlineData("user.@domain.com")]
-        public void CreateEmail_WithInvalidFormat_ShouldThrowArgumentException(string invalidEmail)
+        public void CreateEmail_WithInvalidFormat_ShouldHaveErrorValues(string invalidEmail)
         {
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => new Email(invalidEmail));
-            Assert.Equal("Invalid email format.", exception.Message);
+            var email = new Email(invalidEmail);
+            Assert.NotEmpty(email.Errors);
+            Assert.Equal("Invalid email format.", email.Errors.First());
         }
 
         [Fact]
