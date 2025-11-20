@@ -54,7 +54,7 @@ namespace TodoApp.API.Controllers
         {
             var command = new RegisterCommand(request);
             var result = await _registerCommandHandle.Handle(command, cancellationToken);
-            return result.IsSuccess ? Created(nameof(Register), result) : this.FromResult(result);
+            return result.IsSuccess ? Created(nameof(Register), result.Value) : this.FromResult(result);
         }
 
         [HttpPost("refresh-token")]

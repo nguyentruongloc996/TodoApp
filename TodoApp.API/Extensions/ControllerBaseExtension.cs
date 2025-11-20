@@ -24,7 +24,6 @@ namespace TodoApp.API.Extensions
                 { IsNotFound: true } => controller.NotFound(result.Error.Message),
                 { IsUnauthorized: true } => controller.Unauthorized(result.Error.Message),
                 { IsConflict: true } => controller.Conflict(result.Error.Message),
-                { IsFailure: true } => controller.BadRequest(result.Error.Message),
                 { IsValidation: true } => controller.ValidationProblem(result.Error.Message),
                 _ => controller.StatusCode(500, result.Error)
             };
