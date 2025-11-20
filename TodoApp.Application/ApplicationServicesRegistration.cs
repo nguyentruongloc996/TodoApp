@@ -30,8 +30,8 @@ namespace TodoApp.Application
             // Auth Use Cases
             services.AddScoped<ICommandHandle<LoginCommand, Result<LoginResponseDto>>, LoginCommandHandle>();
             services.AddScoped<ICommandHandle<GoogleLoginCommand, LoginResponseDto>, GoogleLoginCommandHandle>();
-            services.AddScoped<ICommandHandle<RegisterCommand, RegisterRequestDto>, RegisterCommandHandle>();
-            services.AddScoped<ICommandHandle<RefreshTokenCommand, LoginResponseDto>, RefreshTokenCommandHandle>();
+            services.AddScoped<ICommandHandle<RegisterCommand, Result<RegisterRequestDto>>, RegisterCommandHandle>();
+            services.AddScoped<ICommandHandle<RefreshTokenCommand, Result<LoginResponseDto>>, RefreshTokenCommandHandle>();
 
             // Task Use Cases
             services.AddScoped<ICommandHandle<CreateTaskCommand, TaskDto>, CreateTaskCommandHandle>();
