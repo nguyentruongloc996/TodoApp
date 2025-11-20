@@ -45,7 +45,10 @@ namespace TodoApp.Infrastructure.Services
                 Id = Guid.NewGuid(),
                 DisplayName = command.Request.Name
             };
+
             var identityUserId = await _userIdentityService.CreateUserAsync(email.Value, command.Request.Password, user);
+            if (identityUserId.IsFailure)
+                return identityUserId.Error;
 
             return new RegisterRequestDto
             {

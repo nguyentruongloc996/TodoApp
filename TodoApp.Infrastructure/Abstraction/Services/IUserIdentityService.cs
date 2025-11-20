@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using TodoApp.Application.Common.Result;
 using TodoApp.Domain.Entities;
 
 namespace TodoApp.Infrastructure.Abstraction.Services
@@ -13,7 +14,7 @@ namespace TodoApp.Infrastructure.Abstraction.Services
 
     public interface IUserIdentityService
     {
-        Task<Guid> CreateUserAsync(string email, string password, User domainUser);
+        Task<Result<Guid>> CreateUserAsync(string email, string password, User domainUser);
         Task<AuthenticationResult> AuthenticateAsync(string email, string password);
         Task<bool> CheckPasswordAsync(Guid userId, string password);
         System.Threading.Tasks.Task AddToRoleAsync(Guid userId, string role);

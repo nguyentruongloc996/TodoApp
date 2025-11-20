@@ -2,6 +2,7 @@
 using TodoApp.Infrastructure.Abstraction.Services;
 using TodoApp.Domain.Entities;
 using TodoApp.Infrastructure.Persistence.Auth;
+using TodoApp.Application.Common.Result;
 
 namespace TodoApp.Infrastructure.Services
 {
@@ -72,7 +73,7 @@ namespace TodoApp.Infrastructure.Services
             return await _userManager.CheckPasswordAsync(user, password);
         }
 
-        public async Task<Guid> CreateUserAsync(string email, string password, User domainUser)
+        public async Task<Result<Guid>> CreateUserAsync(string email, string password, User domainUser)
         {
             var user = new ApplicationUser
             {
@@ -85,7 +86,7 @@ namespace TodoApp.Infrastructure.Services
             var result = await _userManager.CreateAsync(user, password);
 
             if (!result.Succeeded)
-                throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
+                return Error.Validation("Auth.CreateUserError", string.Join(", ", result.Errors.Select(e => e.Description)));
 
             return user.Id;
         }
