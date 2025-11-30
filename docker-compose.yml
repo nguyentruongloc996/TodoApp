@@ -25,6 +25,8 @@ services:
     environment:
       ConnectionStrings__DefaultConnection: "Host=postgres;Database=todo_db;Username=todo_user;Password=todo_pass"
       Redis__ConnectionString: "redis:6379"
+    ports:
+      - "8080:8080"
     depends_on:
       - postgres
       - redis
