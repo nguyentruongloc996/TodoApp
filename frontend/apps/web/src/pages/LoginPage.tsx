@@ -1,20 +1,27 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { 
-  Button, 
-  Input, 
-  YStack, 
-  XStack, 
-  Text, 
-  Card, 
-  CardHeader, 
-  CardContent, 
-  Separator,
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Card,
+  CardContent,
+  Divider,
   Alert,
-  AlertText,
-} from '../components/ui';
-import { Mail, Lock, Eye, EyeOff, Github } from '../components/icons';
+  InputAdornment,
+  IconButton,
+  Stack,
+  Container,
+} from '@mui/material';
+import {
+  Email as MailIcon,
+  Lock as LockIcon,
+  Visibility as EyeIcon,
+  VisibilityOff as EyeOffIcon,
+} from '@mui/icons-material';
+import { Github } from '../components/icons';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -60,105 +67,146 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <YStack 
-      flex={1} 
-      justifyContent="center" 
-      alignItems="center" 
-      padding="$4"
-      backgroundColor="$background"
-      minHeight="100vh"
-    >
-      <Card width="100%" maxWidth={400} elevation={4}>
-        <CardHeader padding="$6">
-          <YStack alignItems="center" gap="$2">
-            <Text fontSize="$8" fontWeight="bold" color="$color">
-              TodoApp
-            </Text>
-            <Text fontSize="$4" color="$gray11">
-              {isLogin ? 'Sign in to your account' : 'Create a new account'}
-            </Text>
-          </YStack>
-        </CardHeader>
+    <Container maxWidth="sm">
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          py: 4,
+        }}
+      >
+        <Card sx={{ width: '100%', boxShadow: 3 }}>
+          <CardContent sx={{ p: 4 }}>
+            <Stack spacing={3}>
+              {/* Header */}
+              <Box textAlign="center">
+                <Typography variant="h4" fontWeight="bold" gutterBottom>
+                  TodoApp
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {isLogin ? 'Sign in to your account' : 'Create a new account'}
+                </Typography>
+              </Box>
 
-        <CardContent padding="$6">
-          <YStack gap="$4">
-            {error && (
-              <Alert backgroundColor="$red2" borderColor="$red6">
-                <AlertText color="$red11">{error}</AlertText>
-              </Alert>
-            )}
+              {/* Error Alert */}
+              {error && (
+                <Alert severity="error" onClose={() => setError(null)}>
+                  {error}
+                </Alert>
+              )}
 
-            <form onSubmit={handleSubmit}>
-              <YStack gap="$4">
-                {!isLogin && (
-                  <Input
-                    label="Name"
-                    placeholder="Enter your name"
-                    value={formData.name}
-                    onChangeText={(value) => handleInputChange('name', value)}
+              {/* Form */}
+              <form onSubmit={handleSubmit}>
+                <Stack spacing={2}>
+                  {!isLogin && (
+                    <TextField
+                      fullWidth
+                      label="Name"
+                      placeholder="Enter your name"
+                      value={formData.name}
+                      onChange={(e) => handleInputChange('name', e.target.value)}
+                      required
+                      variant="outlined"
+                    />
+                  )}
+
+                  <TextField
+                    fullWidth
+                    label="Email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
                     required
+                    variant="outlined"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <MailIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
                   />
-                )}
 
-                <Input
-                  label="Email"
-                  placeholder="Enter your email"
-                  value={formData.email}
-                  onChangeText={(value) => handleInputChange('email', value)}
-                  icon={Mail}
-                  type="email"
-                  required
-                />
+                  <TextField
+                    fullWidth
+                    label="Password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Enter your password"
+                    value={formData.password}
+                    onChange={(e) => handleInputChange('password', e.target.value)}
+                    required
+                    variant="outlined"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <LockIcon color="action" />
+                        </InputAdornment>
+                      ),
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() => setShowPassword(!showPassword)}
+                            edge="end"
+                            aria-label="toggle password visibility"
+                          >
+                            {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
 
-                <Input
-                  label="Password"
-                  placeholder="Enter your password"
-                  value={formData.password}
-                  onChangeText={(value) => handleInputChange('password', value)}
-                  icon={Lock}
-                  type={showPassword ? 'text' : 'password'}
-                  endIcon={showPassword ? EyeOff : Eye}
-                  onEndIconPress={() => setShowPassword(!showPassword)}
-                  required
-                />
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    fullWidth
+                    size="large"
+                    disabled={isLoading}
+                    sx={{ mt: 1 }}
+                  >
+                    {isLogin ? 'Sign In' : 'Sign Up'}
+                  </Button>
+                </Stack>
+              </form>
 
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  loading={isLoading}
-                >
-                  {isLogin ? 'Sign In' : 'Sign Up'}
-                </Button>
-              </YStack>
-            </form>
+              {/* Divider */}
+              <Divider>OR</Divider>
 
-            <Separator />
-
-            <Button
-              variant="outline"
-              icon={Github}
-              onPress={handleGoogleLogin}
-              disabled={isLoading}
-            >
-              Continue with Google
-            </Button>
-
-            <XStack justifyContent="center" gap="$2">
-              <Text color="$gray11">
-                {isLogin ? "Don't have an account?" : "Already have an account?"}
-              </Text>
+              {/* Google Login */}
               <Button
-                variant="ghost"
-                onPress={() => setIsLogin(!isLogin)}
+                variant="outlined"
+                fullWidth
+                size="large"
+                onClick={handleGoogleLogin}
                 disabled={isLoading}
+                startIcon={<Github size={20} />}
               >
-                {isLogin ? 'Sign Up' : 'Sign In'}
+                Continue with Google
               </Button>
-            </XStack>
-          </YStack>
-        </CardContent>
-      </Card>
-    </YStack>
+
+              {/* Toggle Sign In/Up */}
+              <Box textAlign="center">
+                <Typography variant="body2" component="span" color="text.secondary">
+                  {isLogin ? "Don't have an account?" : "Already have an account?"}
+                </Typography>
+                {' '}
+                <Button
+                  variant="text"
+                  onClick={() => setIsLogin(!isLogin)}
+                  disabled={isLoading}
+                  sx={{ textTransform: 'none' }}
+                >
+                  {isLogin ? 'Sign Up' : 'Sign In'}
+                </Button>
+              </Box>
+            </Stack>
+          </CardContent>
+        </Card>
+      </Box>
+    </Container>
   );
 };
 
