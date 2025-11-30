@@ -10,7 +10,11 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@google-cloud/local-auth": "^3.0.1",
+    "@mui/icons-material": "^7.3.5",
+    "@mui/material": "^7.3.5",
     "@tamagui/animations-css": "^1.132.16",
     "@tamagui/avatar": "^1.132.19",
     "@tamagui/button": "^1.132.19",
